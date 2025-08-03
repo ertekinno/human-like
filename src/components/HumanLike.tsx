@@ -11,6 +11,7 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
   cursorBlinkSpeed = 530,
   autoStart = true,
   config = {},
+  id,
   onStart,
   onComplete,
   onChar,
@@ -44,6 +45,7 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
     showCursor,
     cursorChar,
     cursorBlinkSpeed,
+    id,
     onStart,
     onComplete,
     onChar,
@@ -90,6 +92,7 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
       data-typing={isTyping}
       data-completed={isCompleted}
       data-state={currentState}
+      data-id={id}
       {...props}
     >
       {displayText}

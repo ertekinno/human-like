@@ -60,11 +60,12 @@ function App() {
 | `cursorBlinkSpeed` | `number` | `530` | Cursor blink speed in milliseconds |
 | `autoStart` | `boolean` | `true` | Start typing automatically |
 | `config` | `Partial<HumanLikeConfig>` | `{}` | Advanced configuration options |
-| `onStart` | `() => void` | - | Called when typing starts |
-| `onComplete` | `() => void` | - | Called when typing completes |
-| `onChar` | `(char: string) => void` | - | Called after each character |
-| `onMistake` | `(mistake: MistakeInfo) => void` | - | Called when a mistake occurs |
-| `onBackspace` | `() => void` | - | Called when backspacing |
+| `id` | `string` | - | Unique identifier for tracking multiple instances |
+| `onStart` | `(id?: string) => void` | - | Called when typing starts |
+| `onComplete` | `(id?: string) => void` | - | Called when typing completes |
+| `onChar` | `(char: string, index: number, id?: string) => void` | - | Called after each character |
+| `onMistake` | `(mistake: MistakeInfo, id?: string) => void` | - | Called when a mistake occurs |
+| `onBackspace` | `(id?: string) => void` | - | Called when backspacing |
 | `className` | `string` | - | CSS class for styling |
 | `style` | `React.CSSProperties` | - | Inline styles |
 
@@ -89,6 +90,9 @@ interface HumanLikeConfig {
   fatigueEffect: boolean;           // Gradual slowdown over time
   concentrationLapses: boolean;     // Random thinking pauses
   overcorrection: boolean;          // Mistakes while fixing mistakes
+  
+  // Debug Configuration
+  debug: boolean;                   // Enable console logging (default: false)
   
   // Advanced Timing
   sentencePause: number;            // Pause after sentences (400-600ms)
@@ -268,12 +272,42 @@ const QWERTY_ADJACENT = {
     },
     fatigueEffect: true,
     concentrationLapses: true,
-    overcorrection: true
+    overcorrection: true,
+    debug: true  // Enable detailed console logging
   }}
   onStart={() => console.log('Started typing')}
   onMistake={(mistake) => console.log('Made mistake:', mistake)}
   onComplete={() => console.log('Finished typing')}
 />
+```
+
+### Multiple Instances with Tracking
+```jsx
+function MultipleTypewriters() {
+  const handleEvent = (eventType, id, ...args) => {
+    console.log(`${eventType} from typewriter: ${id}`, args);
+  };
+
+  return (
+    <div>
+      <HumanLike
+        id="header-typewriter"
+        text="Welcome to our website!"
+        onStart={(id) => handleEvent('Start', id)}
+        onComplete={(id) => handleEvent('Complete', id)}
+        onMistake={(mistake, id) => handleEvent('Mistake', id, mistake)}
+      />
+      
+      <HumanLike
+        id="footer-typewriter" 
+        text="Thanks for visiting!"
+        onStart={(id) => handleEvent('Start', id)}
+        onComplete={(id) => handleEvent('Complete', id)}
+        onChar={(char, index, id) => handleEvent('Char', id, char, index)}
+      />
+    </div>
+  );
+}
 ```
 
 ### Hook Usage for Custom Components

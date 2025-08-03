@@ -9,11 +9,12 @@ interface UseHumanLikeOptions {
   showCursor?: boolean;
   cursorChar?: string;
   cursorBlinkSpeed?: number;
-  onStart?: () => void;
-  onComplete?: () => void;
-  onChar?: (char: string, index: number) => void;
-  onMistake?: (mistake: MistakeInfo) => void;
-  onBackspace?: () => void;
+  id?: string;
+  onStart?: (id?: string) => void;
+  onComplete?: (id?: string) => void;
+  onChar?: (char: string, index: number, id?: string) => void;
+  onMistake?: (mistake: MistakeInfo, id?: string) => void;
+  onBackspace?: (id?: string) => void;
   onPause?: () => void;
   onResume?: () => void;
   onStateChange?: (state: TypingState) => void;
@@ -26,6 +27,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     autoStart = false,
     showCursor: initialShowCursor = true,
     cursorBlinkSpeed = 530,
+    id,
     onStart,
     onComplete,
     onChar,
@@ -82,10 +84,10 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       
       // Handle state-specific logic
       if (state === 'typing' && !isInitializedRef.current) {
-        onStart?.();
+        onStart?.(id);
         isInitializedRef.current = true;
       } else if (state === 'completed') {
-        onComplete?.();
+        onComplete?.(id);
       } else if (state === 'paused') {
         onPause?.();
       } else if (state === 'typing' && isInitializedRef.current) {
@@ -98,7 +100,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     typingEngine.onCharacterListener((char, index) => {
       // Immediate update for better responsiveness
       setDisplayText(typingEngine.getDisplayText());
-      onChar?.(char, index);
+      onChar?.(char, index, id);
       
       // Clear any pending update to prevent double rendering
       if (updateTimeout) {
@@ -109,7 +111,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
 
     typingEngine.onMistakeListener((mistake) => {
       setMistakeCount(prev => prev + 1);
-      onMistake?.(mistake);
+      onMistake?.(mistake, id);
     });
 
     // Optimize backspace updates
@@ -118,7 +120,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       requestAnimationFrame(() => {
         setDisplayText(typingEngine.getDisplayText());
       });
-      onBackspace?.();
+      onBackspace?.(id);
     });
 
     typingEngine.onProgressListener((progressValue) => {

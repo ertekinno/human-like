@@ -55,6 +55,12 @@ export class TypingEngine {
     this.stats = this.initializeStats();
   }
 
+  private debug(...args: any[]): void {
+    if (this.config.debug) {
+      console.log(...args);
+    }
+  }
+
   private initializeStats(): TypingStats {
     return {
       totalCharacters: this.text.length,
@@ -196,18 +202,18 @@ export class TypingEngine {
         // CAPS LOCK mode: Only first and last letters get delays
         if (capsInfo.isFirst) {
           baseDelay += TIMING_CONSTANTS.CAPS_LOCK_ON_DELAY; // Press CAPS LOCK + type letter
-          console.log(`🔠 CAPS LOCK ON: "${char}" gets +${TIMING_CONSTANTS.CAPS_LOCK_ON_DELAY}ms`);
+          this.debug(`🔠 CAPS LOCK ON: "${char}" gets +${TIMING_CONSTANTS.CAPS_LOCK_ON_DELAY}ms`);
         } else if (capsInfo.isLast) {
           baseDelay += TIMING_CONSTANTS.CAPS_LOCK_OFF_DELAY; // Type letter + turn off CAPS LOCK
-          console.log(`🔡 CAPS LOCK OFF: "${char}" gets +${TIMING_CONSTANTS.CAPS_LOCK_OFF_DELAY}ms`);
+          this.debug(`🔡 CAPS LOCK OFF: "${char}" gets +${TIMING_CONSTANTS.CAPS_LOCK_OFF_DELAY}ms`);
         } else {
           // Middle of CAPS LOCK sequence - normal speed
-          console.log(`🔠 CAPS LOCK MIDDLE: "${char}" normal speed`);
+          this.debug(`🔠 CAPS LOCK MIDDLE: "${char}" normal speed`);
         }
       } else {
         // Single capital or short sequence - use SHIFT
         baseDelay += TIMING_CONSTANTS.SHIFT_HESITATION;
-        console.log(`⇧ SHIFT: "${char}" gets +${TIMING_CONSTANTS.SHIFT_HESITATION}ms`);
+        this.debug(`⇧ SHIFT: "${char}" gets +${TIMING_CONSTANTS.SHIFT_HESITATION}ms`);
       }
     } else if (SHIFT_CHARS.has(char)) {
       // Non-letter symbols requiring shift
@@ -332,7 +338,7 @@ export class TypingEngine {
     this.mistakes.push(mistake);
     this.stats.mistakesMade++;
     
-    console.log(`🔴 MISTAKE: "${originalChar}" → "${mistakeChar}" (${mistakeType}) at pos ${this.currentIndex}`);
+    this.debug(`🔴 MISTAKE: "${originalChar}" → "${mistakeChar}" (${mistakeType}) at pos ${this.currentIndex}`);
     
     // Type the mistake
     this.displayText += mistakeChar;
@@ -353,7 +359,7 @@ export class TypingEngine {
     
     // Add to correction queue instead of scheduling immediately
     const realizationTime = Math.max(mistake.realizationTime, 200);
-    console.log(`📝 Adding "${mistakeChar}" to correction queue (will correct in ${realizationTime}ms)`);
+    this.debug(`📝 Adding "${mistakeChar}" to correction queue (will correct in ${realizationTime}ms)`);
     
     this.timeoutId = window.setTimeout(() => {
       if (!mistake.corrected) {
@@ -378,7 +384,7 @@ export class TypingEngine {
       return;
     }
 
-    console.log(`🔧 Processing correction for "${mistake.mistakeChar}" → "${mistake.originalChar}"`);
+    this.debug(`🔧 Processing correction for "${mistake.mistakeChar}" → "${mistake.originalChar}"`);
     this.correctMistake(mistake);
   }
 
@@ -387,19 +393,19 @@ export class TypingEngine {
     this.state = 'correcting';
     this.onStateChange?.('correcting');
     
-    console.log(`🔧 Correcting mistake: "${mistake.mistakeChar}" → should be "${mistake.originalChar}"`);
-    console.log(`📍 Current text: "${this.displayText}", current position: ${this.currentIndex}, mistake position: ${mistake.position}`);
+    this.debug(`🔧 Correcting mistake: "${mistake.mistakeChar}" → should be "${mistake.originalChar}"`);
+    this.debug(`📍 Current text: "${this.displayText}", current position: ${this.currentIndex}, mistake position: ${mistake.position}`);
     
     // Calculate exactly where we need to backspace to
     const targetPosition = mistake.position;
     const currentTextLength = this.displayText.length;
     const charsToDelete = currentTextLength - targetPosition;
     
-    console.log(`🔄 Need to delete ${charsToDelete} chars to get back to position ${targetPosition}`);
+    this.debug(`🔄 Need to delete ${charsToDelete} chars to get back to position ${targetPosition}`);
     
     if (charsToDelete <= 0) {
       // Already at or past the correct position, just mark as corrected and continue
-      console.log(`⚠️ Already at correct position, marking as corrected`);
+      this.debug(`⚠️ Already at correct position, marking as corrected`);
       this.finishCorrection(mistake);
       return;
     }
@@ -424,7 +430,7 @@ export class TypingEngine {
         
         this.onBackspace?.();
         
-        console.log(`⬅️ Backspace ${deletedCount}/${charsToDelete}: "${this.displayText}" (length: ${this.displayText.length})`);
+        this.debug(`⬅️ Backspace ${deletedCount}/${charsToDelete}: "${this.displayText}" (length: ${this.displayText.length})`);
         
         if (deletedCount < charsToDelete && this.displayText.length > targetPosition) {
           this.timeoutId = window.setTimeout(performBackspace, backspaceDelay);
@@ -450,8 +456,8 @@ export class TypingEngine {
     this.stats.mistakesCorrected++;
     this.isCorrectingMistake = false;
     
-    console.log(`✅ Correction complete. Position: ${this.currentIndex}, Text: "${this.displayText}"`);
-    console.log(`📝 Ready to type correct character: "${mistake.originalChar}"`);
+    this.debug(`✅ Correction complete. Position: ${this.currentIndex}, Text: "${this.displayText}"`);
+    this.debug(`📝 Ready to type correct character: "${mistake.originalChar}"`);
     
     this.timeoutId = window.setTimeout(() => {
       this.state = 'typing';
@@ -700,7 +706,7 @@ export class TypingEngine {
     const hasQueuedCorrections = this.correctionQueue.length > 0;
     
     if (uncorrectedMistakes.length > 0 || hasQueuedCorrections) {
-      console.log(`🔍 Found ${uncorrectedMistakes.length} uncorrected mistakes and ${this.correctionQueue.length} queued corrections`);
+      this.debug(`🔍 Found ${uncorrectedMistakes.length} uncorrected mistakes and ${this.correctionQueue.length} queued corrections`);
       
       // Add any uncorrected mistakes to the correction queue
       for (const mistake of uncorrectedMistakes) {
@@ -728,7 +734,7 @@ export class TypingEngine {
     this.onStateChange?.('completed');
     this.onComplete?.();
     
-    console.log(`🎉 Typing completed! Final text: "${this.displayText}"`);
+    this.debug(`🎉 Typing completed! Final text: "${this.displayText}"`);
   }
 
   private updateProgress(): void {
@@ -817,7 +823,7 @@ export class TypingEngine {
   public forceCorrectAllMistakes(): void {
     const uncorrected = this.getUncorrectedMistakes();
     if (uncorrected.length > 0 || this.correctionQueue.length > 0) {
-      console.log(`🔧 Forcing correction of ${uncorrected.length} uncorrected mistakes and ${this.correctionQueue.length} queued corrections`);
+      this.debug(`🔧 Forcing correction of ${uncorrected.length} uncorrected mistakes and ${this.correctionQueue.length} queued corrections`);
       
       // Add uncorrected mistakes to queue
       for (const mistake of uncorrected) {

@@ -197,6 +197,7 @@ export const DEFAULT_CONFIG: HumanLikeConfig = {
   fatigueEffect: true,
   concentrationLapses: true,
   overcorrection: true,
+  debug: false,
   sentencePause: TIMING_CONSTANTS.SENTENCE_PAUSE,
   wordPause: TIMING_CONSTANTS.WORD_SPACE,
   thinkingPause: TIMING_CONSTANTS.THINKING_PAUSE,

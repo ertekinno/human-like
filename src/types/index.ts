@@ -11,6 +11,7 @@ export interface HumanLikeConfig {
   fatigueEffect: boolean;
   concentrationLapses: boolean;
   overcorrection: boolean;
+  debug: boolean;
   sentencePause: number;
   wordPause: number;
   thinkingPause: number;
@@ -29,13 +30,14 @@ export interface HumanLikeProps {
   cursorBlinkSpeed?: number;
   autoStart?: boolean;
   config?: Partial<HumanLikeConfig>;
-  onStart?: () => void;
-  onComplete?: () => void;
-  onChar?: (char: string, index: number) => void;
-  onMistake?: (mistake: MistakeInfo) => void;
-  onBackspace?: () => void;
-  onPause?: () => void;
-  onResume?: () => void;
+  id?: string;
+  onStart?: (id?: string) => void;
+  onComplete?: (id?: string) => void;
+  onChar?: (char: string, index: number, id?: string) => void;
+  onMistake?: (mistake: MistakeInfo, id?: string) => void;
+  onBackspace?: (id?: string) => void;
+  onPause?: (id?: string) => void;
+  onResume?: (id?: string) => void;
   className?: string;
   style?: React.CSSProperties;
 }
