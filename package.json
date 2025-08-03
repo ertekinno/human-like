@@ -1,6 +1,6 @@
 {
   "name": "@ertekinno/human-like",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A sophisticated React typewriter effect library that simulates realistic human typing behavior",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -44,6 +44,14 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": false
+    },
+    "react-dom": {
+      "optional": false
+    }
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

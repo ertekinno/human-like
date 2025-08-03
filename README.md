@@ -18,6 +18,7 @@ Note: This library is built with [Claude Code](https://claude.ai/code) - AI-powe
 - 📱 **React Native Compatible**: Works seamlessly across platforms
 - 🔧 **TypeScript Support**: Full type definitions included
 - 🎮 **Rich API**: Complete control with events and lifecycle methods
+- ✅ **React 19 Compatible**: Fully optimized for React 19 with proper externalization
 
 ## 📦 Installation
 
@@ -355,8 +356,9 @@ npm run build
 
 ## 📊 Performance
 
-- **Bundle Size**: ~11.7KB gzipped (enhanced with more realistic features!)
+- **Bundle Size**: ~7.3KB gzipped (significantly reduced in v1.0.2!)
 - **Dependencies**: React 16.8+ (hooks support required)
+- **React 19 Compatible**: Full support for React 19 with proper externalization
 - **Performance**: Optimized for 60fps animations with requestAnimationFrame
 - **Memory**: Minimal memory footprint with efficient cleanup
 - **Enhanced Features**: Added shift hesitation, number difficulty, symbol complexity, look-ahead typing
