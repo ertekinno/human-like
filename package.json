@@ -1,5 +1,5 @@
 {
-  "name": "human-like",
+  "name": "@ertekinno/human-like",
   "version": "1.0.0",
   "description": "A sophisticated React typewriter effect library that simulates realistic human typing behavior",
   "main": "dist/index.js",

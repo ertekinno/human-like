@@ -22,16 +22,16 @@ Note: This library is built with [Claude Code](https://claude.ai/code) - AI-powe
 ## 📦 Installation
 
 ```bash
-npm install human-like
+npm install @ertekinno/human-like
 # or
-yarn add human-like
+yarn add @ertekinno/human-like
 ```
 
 ## 🚀 Quick Start
 
 ```jsx
 import React from 'react';
-import { HumanLike } from 'human-like';
+import { HumanLike } from '@ertekinno/human-like';
 
 function App() {
   return (
@@ -99,7 +99,7 @@ interface HumanLikeConfig {
 ## 🎮 Control Methods
 
 ```jsx
-import { useHumanLike } from 'human-like';
+import { useHumanLike } from '@ertekinno/human-like';
 
 function ControlledTyping() {
   const { 
