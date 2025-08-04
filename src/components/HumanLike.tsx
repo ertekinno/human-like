@@ -55,13 +55,8 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
     onResume
   });
 
-  // Default styles for the component
-  const defaultStyle: React.CSSProperties = {
-    fontFamily: 'monospace',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-    ...style
-  };
+  // Apply user styles only
+  const componentStyle = style;
 
   // Cursor styles
   const cursorStyle: React.CSSProperties = {
@@ -88,7 +83,7 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
   return (
     <span
       className={`human-like-typewriter ${className || ''}`}
-      style={defaultStyle}
+      style={componentStyle}
       data-typing={isTyping}
       data-completed={isCompleted}
       data-state={currentState}

@@ -197,6 +197,9 @@ export class TypingEngine {
     // Check if we should make a mistake
     const shouldMakeMistake = this.shouldMakeMistake(char);
     
+    // For significant delays (>200ms), show thinking state during the pause
+    const isSignificantPause = delay > 200;
+    
     // Use requestAnimationFrame for better performance on fast typing
     if (delay < 30) {
       requestAnimationFrame(() => {
@@ -206,7 +209,24 @@ export class TypingEngine {
           this.typeCharacter(char);
         }
       });
+    } else if (isSignificantPause) {
+      // Set thinking state for longer pauses (sentence, word, thinking pauses)
+      this.state = 'thinking';
+      this.safeCallback(this.onStateChange, 'thinking');
+      
+      this.timeoutId = window.setTimeout(() => {
+        // Return to typing state before actually typing
+        this.state = 'typing';
+        this.safeCallback(this.onStateChange, 'typing');
+        
+        if (shouldMakeMistake) {
+          this.makeMistake(char);
+        } else {
+          this.typeCharacter(char);
+        }
+      }, delay);
     } else {
+      // Normal delay without state change
       this.timeoutId = window.setTimeout(() => {
         if (shouldMakeMistake) {
           this.makeMistake(char);

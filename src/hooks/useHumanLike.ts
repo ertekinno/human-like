@@ -196,8 +196,8 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     // Only manage blinking if cursor should be visible
     const shouldShowCursor = options.showCursor !== undefined ? options.showCursor : initialShowCursor;
     
-    if (shouldShowCursor && (currentState === 'typing' || currentState === 'paused' || currentState === 'correcting')) {
-      // Start blinking
+    if (shouldShowCursor && (currentState === 'idle' || currentState === 'paused' || currentState === 'thinking')) {
+      // Start blinking for idle/paused/thinking states (realistic behavior)
       setShowCursor(true);
       cursorIntervalRef.current = window.setInterval(() => {
         setShowCursor(prev => !prev);
@@ -205,8 +205,11 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     } else if (currentState === 'completed') {
       // Hide cursor when completed
       setShowCursor(false);
+    } else if (shouldShowCursor && (currentState === 'typing' || currentState === 'correcting')) {
+      // Show solid cursor while actively typing/correcting (realistic behavior)
+      setShowCursor(true);
     } else {
-      // Show static cursor for other states
+      // Default to showing cursor if it should be visible
       setShowCursor(shouldShowCursor);
     }
 
