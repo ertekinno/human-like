@@ -40,6 +40,8 @@ export class TypingEngine {
   private charactersTyped: number = 0;
   private fatigueLevel: number = 0;
   private lastHandUsed: 'left' | 'right' | null = null;
+  private pauseStartTime: number = 0;
+  private totalPausedTime: number = 0;
   
   // Event callbacks
   private onStateChange?: (state: TypingState) => void;
@@ -82,7 +84,8 @@ export class TypingEngine {
       mistakesCorrected: 0,
       startTime: 0,
       currentWPM: 0,
-      averageCharDelay: 0
+      averageCharDelay: 0,
+      totalDuration: 0
     };
   }
 
@@ -90,7 +93,12 @@ export class TypingEngine {
     if (this.state === 'typing' || this.state === 'correcting') return;
     
     this.state = 'typing';
-    this.stats.startTime = Date.now();
+    const now = Date.now();
+    
+    if (this.stats.startTime === 0) {
+      this.stats.startTime = now;
+    }
+    
     this.safeCallback(this.onStateChange, 'typing');
     this.scheduleNextCharacter();
   }
@@ -118,6 +126,7 @@ export class TypingEngine {
         clearTimeout(this.timeoutId);
         this.timeoutId = null;
       }
+      this.pauseStartTime = Date.now();
       this.state = 'paused';
       this.safeCallback(this.onStateChange, 'paused');
     }
@@ -125,6 +134,10 @@ export class TypingEngine {
 
   public resume(): void {
     if (this.state === 'paused') {
+      if (this.pauseStartTime > 0) {
+        this.totalPausedTime += Date.now() - this.pauseStartTime;
+        this.pauseStartTime = 0;
+      }
       this.state = 'typing';
       this.safeCallback(this.onStateChange, 'typing');
       this.scheduleNextCharacter();
@@ -151,6 +164,8 @@ export class TypingEngine {
     this.correctionQueue = [];
     this.isCorrectingMistake = false;
     this.events = [];
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
     this.stats = this.initializeStats();
     this.state = 'idle';
     this.safeCallback(this.onStateChange, 'idle');
@@ -537,16 +552,18 @@ export class TypingEngine {
     this.currentIndex++;
     this.charactersTyped++;
     
+    const now = Date.now();
     this.recordEvent({
       type: 'char',
       char,
       position: this.currentIndex - 1,
-      timestamp: Date.now()
+      timestamp: now
     });
     
     this.safeCallback(this.onCharacter, char, this.currentIndex - 1);
     this.updateProgress();
     this.updateWPM();
+    this.updateTotalDuration();
     
     this.scheduleNextCharacter();
   }
@@ -793,11 +810,17 @@ export class TypingEngine {
     // Only set completed state if we're not already completed
     if (this.state !== 'completed') {
       this.state = 'completed';
-      this.stats.endTime = Date.now();
+      const now = Date.now();
+      this.stats.endTime = now;
+      
+      // Final duration update
+      this.updateTotalDuration();
+      
       this.safeCallback(this.onStateChange, 'completed');
       this.safeCallback(this.onComplete);
       
       this.debug(`🎉 Typing completed! Final text: "${this.displayText}"`);
+      this.debug(`⏱️ Total duration: ${this.stats.totalDuration}ms`);
       
       // Final progress update to ensure 100%
       this.safeCallback(this.onProgress, 100);
@@ -832,6 +855,15 @@ export class TypingEngine {
     this.stats.currentWPM = Math.round(wordsTyped / minutesElapsed);
   }
 
+  private updateTotalDuration(): void {
+    if (this.stats.startTime === 0) return;
+    
+    const now = Date.now();
+    // Total duration is the time elapsed minus any paused time
+    this.stats.totalDuration = (now - this.stats.startTime) - this.totalPausedTime;
+  }
+
+
   private recordEvent(event: TypingEvent): void {
     this.events.push(event);
   }
@@ -848,6 +880,10 @@ export class TypingEngine {
   public isCompleted(): boolean { return this.state === 'completed'; }
   public isTyping(): boolean { return this.state === 'typing' || this.state === 'correcting'; }
   public isPaused(): boolean { return this.state === 'paused'; }
+  public getTotalDuration(): number { 
+    this.updateTotalDuration(); 
+    return this.stats.totalDuration; 
+  }
 
   // Event listener setters
   public onStateChangeListener(callback: (state: TypingState) => void): void {

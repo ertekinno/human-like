@@ -40,6 +40,7 @@ const ConfigurableDemo: React.FC = () => {
     progress,
     currentWPM,
     mistakeCount,
+    totalDuration,
     start,
     stop,
     pause,
@@ -224,15 +225,18 @@ const ConfigurableDemo: React.FC = () => {
   useEffect(() => {
     const statsElement = document.getElementById('stats1');
     if (statsElement) {
+      const formatDuration = (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}s`;
+      
       statsElement.innerHTML = `
         State: <strong>${currentState}</strong> | 
         Progress: <strong>${progress.toFixed(1)}%</strong> | 
         WPM: <strong>${currentWPM}</strong> | 
         Mistakes: <strong>${mistakeCount}</strong> |
-        Speed: <strong>${config.speed}ms</strong>
+        Speed: <strong>${config.speed}ms</strong> |
+        Duration: <strong>${formatDuration(totalDuration)}</strong>
       `;
     }
-  }, [currentState, progress, currentWPM, mistakeCount, config.speed]);
+  }, [currentState, progress, currentWPM, mistakeCount, totalDuration, config.speed]);
 
   return (
     <span style={{ 
@@ -270,6 +274,7 @@ const PresetDemo: React.FC = () => {
     progress,
     currentWPM,
     mistakeCount,
+    totalDuration,
     start,
     stop,
     reset
@@ -391,15 +396,179 @@ const PresetDemo: React.FC = () => {
   useEffect(() => {
     const statsElement = document.getElementById('stats2');
     if (statsElement) {
+      const formatDuration = (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}s`;
+      
       statsElement.innerHTML = `
         State: <strong>${currentState}</strong> | 
         Progress: <strong>${progress.toFixed(1)}%</strong> | 
         WPM: <strong>${currentWPM}</strong> | 
         Mistakes: <strong>${mistakeCount}</strong> |
-        Current Speed: <strong>${currentConfig.speed}ms</strong>
+        Speed: <strong>${currentConfig.speed}ms</strong> |
+        Duration: <strong>${formatDuration(totalDuration)}</strong>
       `;
     }
-  }, [currentState, progress, currentWPM, mistakeCount, currentConfig.speed]);
+  }, [currentState, progress, currentWPM, mistakeCount, totalDuration, currentConfig.speed]);
+
+  return (
+    <span style={{ 
+      fontFamily: 'monospace',
+      fontSize: '1rem',
+      lineHeight: '1.6',
+      wordBreak: 'break-word',
+      whiteSpace: 'pre-wrap'
+    }}>
+      {displayText}
+      {showCursor && (
+        <span style={{ 
+          animation: 'human-like-cursor-blink 1.06s infinite',
+          fontWeight: 'bold'
+        }}>{cursorChar}</span>
+      )}
+    </span>
+  );
+};
+
+// Duration Demo Component
+const DurationDemo: React.FC = () => {
+  const [durationStartTime, setDurationStartTime] = useState(0);
+  const [pausedTime, setPausedTime] = useState(0);
+  const [wasPaused, setWasPaused] = useState(false);
+  
+  const sampleTexts = {
+    short: "Hello World!",
+    medium: "This is a medium-length text to demonstrate duration tracking with realistic typing speed and timing.",
+    long: "This is a comprehensive demonstration of the totalDuration feature. It includes various punctuation marks, numbers like 123 and 456, special characters @#$%, and realistic human typing patterns with potential mistakes and corrections. The duration tracker measures every aspect of the typing process including delays, pauses, mistakes, and corrections to provide accurate timing metrics for performance analysis and user experience optimization.",
+    complex: "Advanced Test: CAPITAL Letters, Numbers 0-9, Symbols (@#$%^&*), and complex programming syntax like: const func = (data: string[]) => { return data.filter(x => x.length > 0); };",
+    mistakes: "This text is specifically designed to trigger common typos and mistakes. Words like 'the', 'and', 'because', 'through', and 'different' often contain errors that need correction.",
+    pause: "This demo will pause after a few words... [PAUSE] ...and then continue to show how paused time is excluded from the total duration calculation."
+  };
+
+  const [currentText, setCurrentText] = useState(sampleTexts.short);
+  const [textType, setTextType] = useState<keyof typeof sampleTexts>('short');
+
+  const {
+    displayText,
+    showCursor,
+    cursorChar,
+    currentState,
+    progress,
+    currentWPM,
+    mistakeCount,
+    totalDuration,
+    isCompleted,
+    start,
+    stop,
+    pause,
+    resume,
+    reset
+  } = useHumanLike({
+    text: currentText,
+    config: {
+      speed: textType === 'mistakes' ? 60 : 50,
+      speedVariation: 25,
+      mistakeFrequency: textType === 'mistakes' ? 0.12 : 0.04, 
+      mistakeTypes: {
+        adjacent: true,
+        random: false,
+        doubleChar: true,
+        commonTypos: true
+      },
+      fatigueEffect: textType === 'long',
+      concentrationLapses: textType === 'complex',
+      overcorrection: true,
+      sentencePause: 300,
+      wordPause: 100,
+      thinkingPause: 250
+    },
+    autoStart: false,
+    onStart: () => {
+      console.log('Duration demo started');
+      setDurationStartTime(Date.now());
+      setPausedTime(0);
+      setWasPaused(false);
+    },
+    onComplete: () => {
+      console.log(`Duration demo completed in ${totalDuration}ms`);
+    },
+    onPause: () => {
+      setWasPaused(true);
+    },
+    onResume: () => {
+      // Resume tracking will be handled by the engine
+    }
+  });
+
+  const startDemo = useCallback((type: keyof typeof sampleTexts) => {
+    setTextType(type);
+    setCurrentText(sampleTexts[type]);
+    setTimeout(() => {
+      reset();
+      setTimeout(start, 100);
+    }, 50);
+  }, [start, reset]);
+
+  const handlePauseTest = useCallback(() => {
+    startDemo('pause');
+    // Auto-pause after 2 seconds
+    setTimeout(() => {
+      if (currentState === 'typing') {
+        pause();
+        // Auto-resume after 3 seconds
+        setTimeout(resume, 3000);
+      }
+    }, 2000);
+  }, [startDemo, pause, resume, currentState]);
+
+  useEffect(() => {
+    const setupButton = (id: string, handler: () => void) => {
+      const button = document.getElementById(id);
+      if (button) {
+        button.onclick = handler;
+      }
+    };
+
+    setupButton('duration-short', () => startDemo('short'));
+    setupButton('duration-medium', () => startDemo('medium'));
+    setupButton('duration-long', () => startDemo('long'));
+    setupButton('duration-complex', () => startDemo('complex'));
+    setupButton('duration-mistakes', () => startDemo('mistakes'));
+    setupButton('duration-pause', handlePauseTest);
+    setupButton('stop-duration', stop);
+    setupButton('reset-duration', reset);
+
+  }, [startDemo, handlePauseTest, stop, reset]);
+
+  // Calculate derived metrics
+  const elapsedTime = durationStartTime > 0 ? Date.now() - durationStartTime : 0;
+  const charsPerSecond = totalDuration > 0 ? (displayText.length / (totalDuration / 1000)) : 0;
+  const accuracy = mistakeCount > 0 && displayText.length > 0 ? 
+    ((displayText.length / (displayText.length + mistakeCount)) * 100) : 100;
+
+  const formatDuration = (ms: number): string => {
+    if (ms < 1000) return `${ms}ms`;
+    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+    const minutes = Math.floor(ms / 60000);
+    const seconds = ((ms % 60000) / 1000).toFixed(1);
+    return `${minutes}m ${seconds}s`;
+  };
+
+  // Update stats display
+  useEffect(() => {
+    const updateElement = (id: string, value: string) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    };
+
+    updateElement('total-duration', formatDuration(totalDuration));
+    updateElement('elapsed-duration', formatDuration(elapsedTime));
+    updateElement('paused-duration', formatDuration(elapsedTime - totalDuration));
+    updateElement('current-wpm', `${currentWPM} WPM`);
+    updateElement('mistake-count', mistakeCount.toString());
+    updateElement('typing-state', currentState);
+    updateElement('chars-per-second', charsPerSecond.toFixed(1));
+    updateElement('accuracy-rate', `${accuracy.toFixed(1)}%`);
+    updateElement('progress-percent', `${progress.toFixed(1)}%`);
+  }, [totalDuration, elapsedTime, currentWPM, mistakeCount, currentState, charsPerSecond, accuracy, progress]);
 
   return (
     <span style={{ 
@@ -428,6 +597,13 @@ function initializeDemos() {
     if (demo1Element) {
       const root1 = ReactDOM.createRoot(demo1Element);
       root1.render(<ConfigurableDemo />);
+    }
+
+    // Demo Duration - TotalDuration tracking
+    const demoDurationElement = document.getElementById('demo-duration');
+    if (demoDurationElement) {
+      const rootDuration = ReactDOM.createRoot(demoDurationElement);
+      rootDuration.render(<DurationDemo />);
     }
 
     // Demo 2 - Presets

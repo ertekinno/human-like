@@ -72,6 +72,7 @@ export interface HumanLikeHookReturn {
   progress: number;
   currentWPM: number;
   mistakeCount: number;
+  totalDuration: number; // Total duration in milliseconds
   showCursor: boolean;
   cursorChar: string;
   cursorBlinkSpeed: number;
@@ -96,6 +97,7 @@ export interface TypingStats {
   endTime?: number;
   currentWPM: number;
   averageCharDelay: number;
+  totalDuration: number; // Total time in milliseconds for the entire typing effect
 }
 
 export interface CharacterTiming {

@@ -44,6 +44,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
   const [progress, setProgress] = useState(0);
   const [currentWPM, setCurrentWPM] = useState(0);
   const [mistakeCount, setMistakeCount] = useState(0);
+  const [totalDuration, setTotalDuration] = useState(0);
   const [showCursor, setShowCursor] = useState(initialShowCursor);
   const [cursorCharState, setCursorCharState] = useState(options.cursorChar || '|');
   const [cursorBlinkSpeedState, setCursorBlinkSpeedState] = useState(cursorBlinkSpeed);
@@ -78,6 +79,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     setProgress(engine.getProgress());
     setCurrentWPM(engine.getStats().currentWPM);
     setMistakeCount(engine.getMistakes().length);
+    setTotalDuration(engine.getTotalDuration());
     setCurrentState(engine.getState());
   }, []);
 
@@ -97,6 +99,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       setProgress(typingEngine.getProgress());
       setCurrentWPM(typingEngine.getStats().currentWPM);
       setMistakeCount(typingEngine.getMistakes().length);
+      setTotalDuration(typingEngine.getTotalDuration());
       
       onStateChange?.(state);
       
@@ -258,6 +261,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       setProgress(engineRef.current.getProgress());
       setMistakeCount(engineRef.current.getMistakes().length);
       setCurrentWPM(engineRef.current.getStats().currentWPM);
+      setTotalDuration(engineRef.current.getTotalDuration());
       isInitializedRef.current = false;
     }
   }, []);
@@ -303,6 +307,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     progress,
     currentWPM,
     mistakeCount,
+    totalDuration,
     showCursor: showCursor && initialShowCursor,
     cursorChar: cursorCharState,
     cursorBlinkSpeed: cursorBlinkSpeedState,
