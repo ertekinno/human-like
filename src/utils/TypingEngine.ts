@@ -880,13 +880,10 @@ export class TypingEngine {
   }
 
   public updateText(newText: string): void {
-    const wasActive = this.state === 'typing' || this.state === 'correcting';
     this.stop();
     this.text = newText ?? ''; // Handle null/undefined text
     this.reset();
-    if (wasActive) {
-      this.start();
-    }
+    // Do not auto-restart - let the caller decide whether to start
   }
 
   // Debug method to check mistake correction status

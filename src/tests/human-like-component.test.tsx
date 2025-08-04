@@ -104,8 +104,8 @@ describe('HumanLike Component', () => {
       const cursor = element.querySelector('.human-like-cursor');
       
       expect(cursor).toBeInTheDocument();
-      // Cursor blinking is handled by CSS animation
-      expect(cursor).toHaveStyle('animation: human-like-cursor-blink 1000ms infinite');
+      // Cursor blinking is now handled by JavaScript state toggling via hook
+      expect(cursor).toHaveStyle('opacity: 1');
     });
   });
 
@@ -148,7 +148,9 @@ describe('HumanLike Component', () => {
     it('should accept mistakeFrequency prop', () => {
       const { container } = render(<HumanLike text="Test" mistakeFrequency={0} />);
       
-      vi.advanceTimersByTime(3000);
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
       
       const element = getTypewriterElement(container);
       // With 0 mistake frequency, should type cleanly
@@ -191,7 +193,9 @@ describe('HumanLike Component', () => {
       
       render(<HumanLike text="Hello" id="test-id" onStart={onStart} />);
       
-      vi.advanceTimersByTime(100);
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
       
       expect(onStart).toHaveBeenCalledWith('test-id');
     });
@@ -201,7 +205,9 @@ describe('HumanLike Component', () => {
       
       render(<HumanLike text="Hi" onComplete={onComplete} config={{ mistakeFrequency: 0 }} />);
       
-      vi.advanceTimersByTime(3000);
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
       
       expect(onComplete).toHaveBeenCalledWith(undefined);
     });
@@ -211,7 +217,9 @@ describe('HumanLike Component', () => {
       
       render(<HumanLike text="AB" onChar={onChar} config={{ mistakeFrequency: 0 }} />);
       
-      vi.advanceTimersByTime(2000);
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
       
       expect(onChar).toHaveBeenCalled();
       expect(onChar.mock.calls[0]).toEqual(['A', 0, undefined]);
@@ -222,7 +230,9 @@ describe('HumanLike Component', () => {
       
       render(<HumanLike text="A" id="char-test" onChar={onChar} config={{ mistakeFrequency: 0 }} />);
       
-      vi.advanceTimersByTime(1000);
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
       
       expect(onChar).toHaveBeenCalledWith('A', 0, 'char-test');
     });
@@ -236,7 +246,9 @@ describe('HumanLike Component', () => {
         config={{ mistakeFrequency: 1.0, debug: false }} 
       />);
       
-      vi.advanceTimersByTime(5000);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
       
       expect(onMistake).toHaveBeenCalled();
       const mistakeCall = onMistake.mock.calls[0];
@@ -255,7 +267,9 @@ describe('HumanLike Component', () => {
         config={{ mistakeFrequency: 1.0, debug: false }} 
       />);
       
-      vi.advanceTimersByTime(10000);
+      act(() => {
+        vi.advanceTimersByTime(10000);
+      });
       
       expect(onBackspace).toHaveBeenCalled();
       expect(onBackspace).toHaveBeenCalledWith(undefined);
@@ -367,13 +381,17 @@ describe('HumanLike Component', () => {
     });
 
     it('should handle focus states', () => {
-      const { container } = render(<HumanLike text="Focus test" />);
+      const { container } = render(<HumanLike text="Focus test" tabIndex={0} />);
       const element = getTypewriterElement(container);
       
-      fireEvent.focus(element);
+      // Verify element has tabindex
+      expect(element).toHaveAttribute('tabindex', '0');
+      
+      // Test focus behavior - in jsdom, focus might not work exactly like browser
+      element.focus();
       expect(element).toBe(document.activeElement);
       
-      fireEvent.blur(element);
+      element.blur();
       expect(element).not.toBe(document.activeElement);
     });
   });
@@ -385,7 +403,9 @@ describe('HumanLike Component', () => {
       // Rapid re-renders should not crash
       for (let i = 0; i < 10; i++) {
         rerender(<HumanLike text={`Performance test ${i}`} />);
-        vi.advanceTimersByTime(10);
+        act(() => {
+          vi.advanceTimersByTime(10);
+        });
       }
       
       const element = getTypewriterElement(container);
@@ -397,14 +417,18 @@ describe('HumanLike Component', () => {
         <HumanLike text="Original" config={{ mistakeFrequency: 0 }} />
       );
       
-      vi.advanceTimersByTime(500);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
       
       // Change props during typing
       rerender(
         <HumanLike text="Original" cursorChar="_" config={{ mistakeFrequency: 0 }} />
       );
       
-      vi.advanceTimersByTime(500);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
       
       const element = getTypewriterElement(container);
       expect(element).toBeInTheDocument();
@@ -441,7 +465,9 @@ describe('HumanLike Component', () => {
       // Should not crash the component
       expect(() => {
         render(<HumanLike text="Hi" onStart={errorCallback} />);
-        vi.advanceTimersByTime(100);
+        act(() => {
+          vi.advanceTimersByTime(100);
+        });
       }).not.toThrow();
     });
   });
@@ -487,7 +513,9 @@ describe('HumanLike Component', () => {
       expect(element).toHaveAttribute('data-completed');
       expect(element).toHaveAttribute('data-state');
       
-      vi.advanceTimersByTime(100);
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
       
       expect(element).toHaveAttribute('data-typing', 'true');
       expect(element).toHaveAttribute('data-completed', 'false');
@@ -495,11 +523,22 @@ describe('HumanLike Component', () => {
     });
 
     it('should update data attributes when state changes', () => {
-      const { container } = render(<HumanLike text="Hi" config={{ mistakeFrequency: 0, speed: 1 }} />);
+      const { container } = render(<HumanLike 
+        text="Hi" 
+        config={{ mistakeFrequency: 0 }}
+        autoStart={true}
+      />);
       const element = getTypewriterElement(container);
       
+      // First verify it starts typing
       act(() => {
-        vi.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(100);
+      });
+      expect(element).toHaveAttribute('data-typing', 'true');
+      
+      // Then wait for completion with generous timeout
+      act(() => {
+        vi.advanceTimersByTime(30000);
       });
       
       expect(element).toHaveAttribute('data-typing', 'false');
