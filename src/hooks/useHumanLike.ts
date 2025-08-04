@@ -72,14 +72,32 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     }
   }, [cursorBlinkSpeed]);
 
+  // Helper function to sync all state with engine
+  const syncStateWithEngine = useCallback((engine: TypingEngine) => {
+    setDisplayText(engine.getDisplayText());
+    setProgress(engine.getProgress());
+    setCurrentWPM(engine.getStats().currentWPM);
+    setMistakeCount(engine.getMistakes().length);
+    setCurrentState(engine.getState());
+  }, []);
+
   // Initialize typing engine once
   useEffect(() => {
     const typingEngine = new TypingEngine(text, config);
     engineRef.current = typingEngine;
     
+    // Initial state sync
+    syncStateWithEngine(typingEngine);
+    
     // Set up event listeners with optimized rendering
     typingEngine.onStateChangeListener((state) => {
+      // Sync all state at once to avoid race conditions
       setCurrentState(state);
+      setDisplayText(typingEngine.getDisplayText());
+      setProgress(typingEngine.getProgress());
+      setCurrentWPM(typingEngine.getStats().currentWPM);
+      setMistakeCount(typingEngine.getMistakes().length);
+      
       onStateChange?.(state);
       
       // Handle state-specific logic
@@ -100,6 +118,12 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     typingEngine.onCharacterListener((char, index) => {
       // Immediate update for better responsiveness
       setDisplayText(typingEngine.getDisplayText());
+      setProgress(typingEngine.getProgress());
+      
+      // Update WPM more frequently during active typing
+      const stats = typingEngine.getStats();
+      setCurrentWPM(stats.currentWPM);
+      
       onChar?.(char, index, id);
       
       // Clear any pending update to prevent double rendering
@@ -110,16 +134,16 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     });
 
     typingEngine.onMistakeListener((mistake) => {
-      setMistakeCount(prev => prev + 1);
+      // Sync mistake count with engine's actual count
+      setMistakeCount(typingEngine.getMistakes().length);
       onMistake?.(mistake, id);
     });
 
     // Optimize backspace updates
     typingEngine.onBackspaceListener(() => {
-      // Use requestAnimationFrame for smoother backspace rendering
-      requestAnimationFrame(() => {
-        setDisplayText(typingEngine.getDisplayText());
-      });
+      // Immediate update for consistency with character updates
+      setDisplayText(typingEngine.getDisplayText());
+      setProgress(typingEngine.getProgress());
       onBackspace?.(id);
     });
 
@@ -169,7 +193,10 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       cursorIntervalRef.current = null;
     }
 
-    if (initialShowCursor && (currentState === 'typing' || currentState === 'paused' || currentState === 'correcting')) {
+    // Only manage blinking if cursor should be visible
+    const shouldShowCursor = options.showCursor !== undefined ? options.showCursor : initialShowCursor;
+    
+    if (shouldShowCursor && (currentState === 'typing' || currentState === 'paused' || currentState === 'correcting')) {
       // Start blinking
       setShowCursor(true);
       cursorIntervalRef.current = window.setInterval(() => {
@@ -180,7 +207,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       setShowCursor(false);
     } else {
       // Show static cursor for other states
-      setShowCursor(initialShowCursor);
+      setShowCursor(shouldShowCursor);
     }
 
     return () => {
@@ -189,7 +216,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
         cursorIntervalRef.current = null;
       }
     };
-  }, [currentState, initialShowCursor, cursorBlinkSpeedState]);
+  }, [currentState, options.showCursor, initialShowCursor, cursorBlinkSpeedState]);
 
   // Control methods
   const start = useCallback(() => {
@@ -210,18 +237,26 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
   }, []);
 
   const skip = useCallback(() => {
-    engineRef.current?.skip();
-    setDisplayText(text);
-    setProgress(100);
+    if (engineRef.current) {
+      engineRef.current.skip();
+      // Let the engine's completion logic handle state updates
+      // The onComplete callback will be triggered automatically
+      setDisplayText(engineRef.current.getDisplayText());
+      setProgress(engineRef.current.getProgress());
+      setCurrentWPM(engineRef.current.getStats().currentWPM);
+    }
   }, [text]);
 
   const rewind = useCallback(() => {
-    engineRef.current?.reset();
-    setDisplayText('');
-    setProgress(0);
-    setMistakeCount(0);
-    setCurrentWPM(0);
-    isInitializedRef.current = false;
+    if (engineRef.current) {
+      engineRef.current.reset();
+      // Sync all state with the reset engine
+      setDisplayText(engineRef.current.getDisplayText());
+      setProgress(engineRef.current.getProgress());
+      setMistakeCount(engineRef.current.getMistakes().length);
+      setCurrentWPM(engineRef.current.getStats().currentWPM);
+      isInitializedRef.current = false;
+    }
   }, []);
 
   const reset = useCallback(() => {

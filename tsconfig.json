@@ -42,7 +42,9 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "src/demo.tsx",
+    "src/tests/setup.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

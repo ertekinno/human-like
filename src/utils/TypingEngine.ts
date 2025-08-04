@@ -50,7 +50,7 @@ export class TypingEngine {
   private onProgress?: (progress: number) => void;
 
   constructor(text: string, config: Partial<HumanLikeConfig> = {}) {
-    this.text = text;
+    this.text = text ?? ''; // Handle null/undefined text
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.stats = this.initializeStats();
   }
@@ -58,6 +58,19 @@ export class TypingEngine {
   private debug(...args: any[]): void {
     if (this.config.debug) {
       console.log(...args);
+    }
+  }
+
+  private safeCallback(callback: Function | undefined, ...args: any[]): void {
+    if (callback) {
+      try {
+        callback(...args);
+      } catch (error) {
+        if (this.config.debug) {
+          console.warn('Callback error:', error);
+        }
+        // Continue execution without crashing
+      }
     }
   }
 
@@ -78,7 +91,7 @@ export class TypingEngine {
     
     this.state = 'typing';
     this.stats.startTime = Date.now();
-    this.onStateChange?.('typing');
+    this.safeCallback(this.onStateChange, 'typing');
     this.scheduleNextCharacter();
   }
 
@@ -96,7 +109,7 @@ export class TypingEngine {
     this.correctionQueue = [];
     this.isCorrectingMistake = false;
     this.state = 'idle';
-    this.onStateChange?.('idle');
+    this.safeCallback(this.onStateChange, 'idle');
   }
 
   public pause(): void {
@@ -106,14 +119,14 @@ export class TypingEngine {
         this.timeoutId = null;
       }
       this.state = 'paused';
-      this.onStateChange?.('paused');
+      this.safeCallback(this.onStateChange, 'paused');
     }
   }
 
   public resume(): void {
     if (this.state === 'paused') {
       this.state = 'typing';
-      this.onStateChange?.('typing');
+      this.safeCallback(this.onStateChange, 'typing');
       this.scheduleNextCharacter();
     }
   }
@@ -123,8 +136,8 @@ export class TypingEngine {
     this.displayText = this.text;
     this.state = 'completed';
     this.stats.endTime = Date.now();
-    this.onStateChange?.('completed');
-    this.onComplete?.();
+    this.safeCallback(this.onStateChange, 'completed');
+    this.safeCallback(this.onComplete);
   }
 
   public reset(): void {
@@ -140,11 +153,28 @@ export class TypingEngine {
     this.events = [];
     this.stats = this.initializeStats();
     this.state = 'idle';
-    this.onStateChange?.('idle');
+    this.safeCallback(this.onStateChange, 'idle');
   }
 
   private scheduleNextCharacter(): void {
+    // Handle empty text case
+    if (this.text.length === 0) {
+      this.completeTyping();
+      return;
+    }
+    
     if (this.currentIndex >= this.text.length) {
+      // Don't immediately complete if we have pending corrections
+      const hasUncorrectedMistakes = this.mistakes.some(m => !m.corrected);
+      const hasPendingCorrections = this.correctionQueue.length > 0;
+      
+      if (hasUncorrectedMistakes || hasPendingCorrections) {
+        this.debug(`📝 Reached end but have ${this.mistakes.filter(m => !m.corrected).length} uncorrected mistakes and ${this.correctionQueue.length} queued corrections`);
+        // Process corrections first before completing
+        this.processNextCorrection();
+        return;
+      }
+      
       this.completeTyping();
       return;
     }
@@ -155,10 +185,10 @@ export class TypingEngine {
     // Check for concentration lapses
     if (this.shouldHaveConcentrationLapse()) {
       this.state = 'thinking';
-      this.onStateChange?.('thinking');
+      this.safeCallback(this.onStateChange, 'thinking');
       this.timeoutId = window.setTimeout(() => {
         this.state = 'typing';
-        this.onStateChange?.('typing');
+        this.safeCallback(this.onStateChange, 'typing');
         this.scheduleNextCharacter();
       }, TIMING_CONSTANTS.CONCENTRATION_PAUSE);
       return;
@@ -353,8 +383,8 @@ export class TypingEngine {
       mistake
     });
     
-    this.onCharacter?.(mistakeChar, this.currentIndex - mistakeChar.length);
-    this.onMistake?.(mistake);
+    this.safeCallback(this.onCharacter, mistakeChar, this.currentIndex - mistakeChar.length);
+    this.safeCallback(this.onMistake, mistake);
     this.updateProgress();
     
     // Add to correction queue instead of scheduling immediately
@@ -391,7 +421,7 @@ export class TypingEngine {
   private correctMistake(mistake: MistakeInfo): void {
     this.isCorrectingMistake = true;
     this.state = 'correcting';
-    this.onStateChange?.('correcting');
+    this.safeCallback(this.onStateChange, 'correcting');
     
     this.debug(`🔧 Correcting mistake: "${mistake.mistakeChar}" → should be "${mistake.originalChar}"`);
     this.debug(`📍 Current text: "${this.displayText}", current position: ${this.currentIndex}, mistake position: ${mistake.position}`);
@@ -428,7 +458,7 @@ export class TypingEngine {
           timestamp: Date.now()
         });
         
-        this.onBackspace?.();
+        this.safeCallback(this.onBackspace);
         
         this.debug(`⬅️ Backspace ${deletedCount}/${charsToDelete}: "${this.displayText}" (length: ${this.displayText.length})`);
         
@@ -461,7 +491,7 @@ export class TypingEngine {
     
     this.timeoutId = window.setTimeout(() => {
       this.state = 'typing';
-      this.onStateChange?.('typing');
+      this.safeCallback(this.onStateChange, 'typing');
       
       // Type the correct character
       this.typeCharacter(mistake.originalChar);
@@ -471,6 +501,13 @@ export class TypingEngine {
         this.timeoutId = window.setTimeout(() => {
           this.processNextCorrection();
         }, this.config.realizationDelay);
+      } else {
+        // No more corrections queued, check if we should complete
+        if (this.currentIndex >= this.text.length) {
+          this.timeoutId = window.setTimeout(() => {
+            this.completeTyping();
+          }, 100);
+        }
       }
     }, this.config.correctionPause);
   }
@@ -487,7 +524,7 @@ export class TypingEngine {
       timestamp: Date.now()
     });
     
-    this.onCharacter?.(char, this.currentIndex - 1);
+    this.safeCallback(this.onCharacter, char, this.currentIndex - 1);
     this.updateProgress();
     this.updateWPM();
     
@@ -705,8 +742,8 @@ export class TypingEngine {
     const uncorrectedMistakes = this.mistakes.filter(m => !m.corrected);
     const hasQueuedCorrections = this.correctionQueue.length > 0;
     
-    if (uncorrectedMistakes.length > 0 || hasQueuedCorrections) {
-      this.debug(`🔍 Found ${uncorrectedMistakes.length} uncorrected mistakes and ${this.correctionQueue.length} queued corrections`);
+    if (uncorrectedMistakes.length > 0 || hasQueuedCorrections || this.isCorrectingMistake) {
+      this.debug(`🔍 Found ${uncorrectedMistakes.length} uncorrected mistakes, ${this.correctionQueue.length} queued corrections, correcting: ${this.isCorrectingMistake}`);
       
       // Add any uncorrected mistakes to the correction queue
       for (const mistake of uncorrectedMistakes) {
@@ -715,13 +752,17 @@ export class TypingEngine {
         }
       }
       
-      // Process corrections
-      this.processNextCorrection();
+      // Process corrections only if not already correcting
+      if (!this.isCorrectingMistake && this.correctionQueue.length > 0) {
+        this.processNextCorrection();
+      }
       
-      // Check again after a delay
-      this.timeoutId = window.setTimeout(() => {
-        this.completeTyping();
-      }, 500);
+      // Check again after a delay, but prevent infinite recursion
+      if (this.state !== 'completed') {
+        this.timeoutId = window.setTimeout(() => {
+          this.completeTyping();
+        }, 500);
+      }
       return;
     }
     
@@ -729,17 +770,36 @@ export class TypingEngine {
     this.displayText = this.text;
     this.currentIndex = this.text.length;
     
-    this.state = 'completed';
-    this.stats.endTime = Date.now();
-    this.onStateChange?.('completed');
-    this.onComplete?.();
-    
-    this.debug(`🎉 Typing completed! Final text: "${this.displayText}"`);
+    // Only set completed state if we're not already completed
+    if (this.state !== 'completed') {
+      this.state = 'completed';
+      this.stats.endTime = Date.now();
+      this.safeCallback(this.onStateChange, 'completed');
+      this.safeCallback(this.onComplete);
+      
+      this.debug(`🎉 Typing completed! Final text: "${this.displayText}"`);
+      
+      // Final progress update to ensure 100%
+      this.safeCallback(this.onProgress, 100);
+    }
   }
 
   private updateProgress(): void {
-    const progress = (this.currentIndex / this.text.length) * 100;
-    this.onProgress?.(progress);
+    // Calculate progress based on actual completion, not just current index
+    // Progress should only reach 100% when truly completed
+    const rawProgress = this.text.length === 0 ? 100 : (this.currentIndex / this.text.length) * 100;
+    
+    // Don't report 100% progress unless we're actually completed and have no pending corrections
+    const hasUncorrectedMistakes = this.mistakes.some(m => !m.corrected);
+    const hasPendingCorrections = this.correctionQueue.length > 0;
+    
+    let actualProgress = rawProgress;
+    if (rawProgress >= 100 && (hasUncorrectedMistakes || hasPendingCorrections || this.isCorrectingMistake)) {
+      // Cap progress at 99% if we still have work to do
+      actualProgress = Math.min(99, rawProgress);
+    }
+    
+    this.safeCallback(this.onProgress, actualProgress);
   }
 
   private updateWPM(): void {
@@ -760,7 +820,7 @@ export class TypingEngine {
   public getText(): string { return this.text; }
   public getDisplayText(): string { return this.displayText; }
   public getState(): TypingState { return this.state; }
-  public getProgress(): number { return (this.currentIndex / this.text.length) * 100; }
+  public getProgress(): number { return this.text.length === 0 ? 100 : (this.currentIndex / this.text.length) * 100; }
   public getStats(): TypingStats { return { ...this.stats }; }
   public getMistakes(): MistakeInfo[] { return [...this.mistakes]; }
   public getEvents(): TypingEvent[] { return [...this.events]; }
@@ -800,11 +860,11 @@ export class TypingEngine {
   }
 
   public updateText(newText: string): void {
-    const wasTyping = this.isTyping();
+    const wasActive = this.state === 'typing' || this.state === 'correcting';
     this.stop();
-    this.text = newText;
+    this.text = newText ?? ''; // Handle null/undefined text
     this.reset();
-    if (wasTyping) {
+    if (wasActive) {
       this.start();
     }
   }

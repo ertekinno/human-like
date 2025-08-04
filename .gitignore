@@ -85,3 +85,4 @@ coverage/
 
 # Demo files (keep out of repository)
 index.html
+test-state-management.html

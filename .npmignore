@@ -53,6 +53,15 @@ __tests__/
 
 # Demo files (keep out of npm package)
 index.html
+test-state-management.html
+src/demo.tsx
+dist/demo.d.ts
+dist/demo.d.ts.map
+
+# Test-related files (compiled)
+dist/tests/
+dist/tests/setup.d.ts
+dist/tests/setup.d.ts.map
 
 # Other
 *.tgz

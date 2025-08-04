@@ -101,48 +101,103 @@ interface HumanLikeConfig {
 }
 ```
 
-## 🎮 Control Methods
+## 🎮 useHumanLike Hook
+
+The `useHumanLike` hook provides complete control over the typing animation with comprehensive state information and control methods.
+
+### Hook Return Values
+
+| Property | Type | Description |
+|----------|------|-------------|
+| **State Information** |
+| `displayText` | `string` | Current text being displayed as typing progresses |
+| `isTyping` | `boolean` | Whether the typewriter is currently typing |
+| `isPaused` | `boolean` | Whether the typewriter is currently paused |
+| `isCompleted` | `boolean` | Whether typing has completed |
+| `currentState` | `TypingState` | Current state: `'idle'` \| `'typing'` \| `'paused'` \| `'correcting'` \| `'thinking'` \| `'completed'` |
+| `progress` | `number` | Typing progress as percentage (0-100) |
+| `currentWPM` | `number` | Current words per minute typing speed |
+| `mistakeCount` | `number` | Total number of mistakes made during typing |
+| **Cursor Properties** |
+| `showCursor` | `boolean` | Whether the cursor is currently visible |
+| `cursorChar` | `string` | Current cursor character (e.g., `\|`, `_`, `█`) |
+| `cursorBlinkSpeed` | `number` | Cursor blink speed in milliseconds |
+| **Control Methods** |
+| `start()` | `function` | Start typing from current position |
+| `stop()` | `function` | Stop typing and reset to beginning |
+| `pause()` | `function` | Pause typing at current position |
+| `resume()` | `function` | Resume typing from paused position |
+| `skip()` | `function` | Skip to end and show complete text immediately |
+| `rewind()` | `function` | Alias for `reset()` - rewind to beginning |
+| `reset()` | `function` | Reset typing to beginning (same as `rewind()`) |
+| **Cursor Control Methods** |
+| `setCursorVisible(visible: boolean)` | `function` | Show/hide the cursor |
+| `setCursorChar(char: string)` | `function` | Change cursor character |
+| `setCursorBlinkSpeed(speed: number)` | `function` | Change cursor blink speed in milliseconds |
+
+### Control Methods Example
 
 ```jsx
 import { useHumanLike } from '@ertekinno/human-like';
 
 function ControlledTyping() {
   const { 
+    // State information
+    displayText, isTyping, isPaused, isCompleted, currentState,
+    progress, currentWPM, mistakeCount,
+    
+    // Cursor properties  
+    showCursor, cursorChar, cursorBlinkSpeed,
+    
+    // Control methods
     start, stop, pause, resume, skip, rewind, reset,
-    isTyping, showCursor, cursorChar, cursorBlinkSpeed,
+    
+    // Cursor control methods
     setCursorVisible, setCursorChar, setCursorBlinkSpeed 
   } = useHumanLike({
     text: "Your text here",
+    autoStart: false,
     onComplete: () => console.log('Done!')
   });
 
   return (
     <div>
+      {/* Display Area */}
+      <div className="typewriter-display">
+        {displayText}
+        {showCursor && <span className="cursor">{cursorChar}</span>}
+      </div>
+      
+      {/* State Information */}
+      <div className="status">
+        <p>State: {currentState}</p>
+        <p>Progress: {progress.toFixed(1)}%</p>
+        <p>WPM: {currentWPM}</p>
+        <p>Mistakes: {mistakeCount}</p>
+        <p>Status: {isTyping ? 'Typing...' : isPaused ? 'Paused' : 'Idle'}</p>
+      </div>
+      
       {/* Typing Controls */}
-      <div>
-        <button onClick={start}>Start</button>
-        <button onClick={pause}>Pause</button>
-        <button onClick={resume}>Resume</button>
+      <div className="controls">
+        <button onClick={start} disabled={isTyping}>Start</button>
+        <button onClick={pause} disabled={!isTyping || isPaused}>Pause</button>
+        <button onClick={resume} disabled={!isPaused}>Resume</button>
         <button onClick={stop}>Stop</button>
-        <button onClick={skip}>Skip</button>
-        <button onClick={rewind}>Rewind</button>
+        <button onClick={skip}>Skip to End</button>
         <button onClick={reset}>Reset</button>
       </div>
       
       {/* Cursor Controls */}
-      <div>
+      <div className="cursor-controls">
         <button onClick={() => setCursorVisible(!showCursor)}>
           {showCursor ? 'Hide' : 'Show'} Cursor
         </button>
-        <button onClick={() => setCursorChar('█')}>Block</button>
+        <button onClick={() => setCursorChar('█')}>Block Cursor</button>
         <button onClick={() => setCursorChar('_')}>Underscore</button>
         <button onClick={() => setCursorChar('|')}>Pipe</button>
         <button onClick={() => setCursorBlinkSpeed(300)}>Fast Blink</button>
         <button onClick={() => setCursorBlinkSpeed(1000)}>Slow Blink</button>
       </div>
-      
-      <p>Status: {isTyping ? 'Typing...' : 'Idle'}</p>
-      <p>Cursor: {showCursor ? cursorChar : 'Hidden'} ({cursorBlinkSpeed}ms)</p>
     </div>
   );
 }
@@ -390,7 +445,7 @@ npm run build
 
 ## 📊 Performance
 
-- **Bundle Size**: ~7.3KB gzipped (significantly reduced in v1.0.2!)
+- **Bundle Size**: ~10.0KB gzipped ESM / ~7.5KB gzipped UMD
 - **Dependencies**: React 16.8+ (hooks support required)
 - **React 19 Compatible**: Full support for React 19 with proper externalization
 - **Performance**: Optimized for 60fps animations with requestAnimationFrame
