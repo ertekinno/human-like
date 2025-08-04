@@ -59,8 +59,10 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
   const componentStyle = style;
 
   // Cursor styles
+  const shouldBlink = shouldShowCursor && (currentState === 'idle' || currentState === 'paused' || currentState === 'thinking');
+  
   const cursorStyle: React.CSSProperties = {
-    animation: shouldShowCursor ? `human-like-cursor-blink ${activeCursorBlinkSpeed}ms infinite` : 'none',
+    animation: shouldBlink ? `human-like-cursor-blink ${activeCursorBlinkSpeed}ms infinite` : 'none',
     opacity: shouldShowCursor ? 1 : 0
   };
 
