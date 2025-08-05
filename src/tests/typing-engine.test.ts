@@ -391,7 +391,8 @@ describe('TypingEngine', () => {
       expect(stats.startTime).toBeGreaterThan(0);
       
       if (engine.isCompleted()) {
-        expect(stats.charactersTyped).toBe(stats.totalCharacters);
+        // With mistakes enabled, charactersTyped includes mistakes and corrections
+        expect(stats.charactersTyped).toBeGreaterThanOrEqual(stats.totalCharacters);
         expect(stats.endTime).toBeGreaterThan(stats.startTime);
       }
     });
@@ -544,7 +545,7 @@ describe('TypingEngine', () => {
       expect(engine.getText()).toBe('New text');
       expect(engine.getDisplayText()).toBe('');
       expect(engine.getProgress()).toBe(0);
-      expect(engine.getState()).toBe('idle');
+      expect(engine.getState()).toBe('typing'); // Should restart since it was typing
       expect(hadProgress).toBe(true);
     });
 

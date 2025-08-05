@@ -197,8 +197,8 @@ export class TypingEngine {
     const char = this.text[this.currentIndex];
     const delay = this.calculateCharacterDelay(char);
     
-    // Check for concentration lapses
-    if (this.shouldHaveConcentrationLapse()) {
+    // Skip concentration lapses for the first character to maintain predictable initial state
+    if (this.currentIndex > 0 && this.shouldHaveConcentrationLapse()) {
       this.state = 'thinking';
       this.safeCallback(this.onStateChange, 'thinking');
       this.timeoutId = window.setTimeout(() => {
@@ -212,8 +212,8 @@ export class TypingEngine {
     // Check if we should make a mistake
     const shouldMakeMistake = this.shouldMakeMistake(char);
     
-    // For significant delays (>200ms), show thinking state during the pause
-    const isSignificantPause = delay > 200;
+    // For significant delays (>200ms), show thinking state during the pause, but not for first character
+    const isSignificantPause = delay > 200 && this.currentIndex > 0;
     
     // Use requestAnimationFrame for better performance on fast typing
     if (delay < 30) {
@@ -409,6 +409,7 @@ export class TypingEngine {
     this.displayText += mistakeChar;
     this.currentIndex++;
     this.charactersTyped++;
+    this.stats.charactersTyped = this.charactersTyped; // Keep stats in sync
     
     this.recordEvent({
       type: 'mistake',
@@ -551,6 +552,7 @@ export class TypingEngine {
     this.displayText += char;
     this.currentIndex++;
     this.charactersTyped++;
+    this.stats.charactersTyped = this.charactersTyped; // Keep stats in sync
     
     const now = Date.now();
     this.recordEvent({
@@ -828,18 +830,16 @@ export class TypingEngine {
   }
 
   private updateProgress(): void {
-    // Calculate progress based on actual completion, not just current index
-    // Progress should only reach 100% when truly completed
-    const rawProgress = this.text.length === 0 ? 100 : (this.currentIndex / this.text.length) * 100;
+    // Use the public getProgress method for consistent calculation
+    let actualProgress = this.getProgress();
     
     // Don't report 100% progress unless we're actually completed and have no pending corrections
     const hasUncorrectedMistakes = this.mistakes.some(m => !m.corrected);
     const hasPendingCorrections = this.correctionQueue.length > 0;
     
-    let actualProgress = rawProgress;
-    if (rawProgress >= 100 && (hasUncorrectedMistakes || hasPendingCorrections || this.isCorrectingMistake)) {
+    if (actualProgress >= 100 && (hasUncorrectedMistakes || hasPendingCorrections || this.isCorrectingMistake)) {
       // Cap progress at 99% if we still have work to do
-      actualProgress = Math.min(99, rawProgress);
+      actualProgress = Math.min(99, actualProgress);
     }
     
     this.safeCallback(this.onProgress, actualProgress);
@@ -872,7 +872,16 @@ export class TypingEngine {
   public getText(): string { return this.text; }
   public getDisplayText(): string { return this.displayText; }
   public getState(): TypingState { return this.state; }
-  public getProgress(): number { return this.text.length === 0 ? 100 : (this.currentIndex / this.text.length) * 100; }
+  public getProgress(): number { 
+    if (this.text.length === 0) return 100;
+    if (this.state === 'completed') return 100;
+    
+    const rawProgress = (this.currentIndex / this.text.length) * 100;
+    if (rawProgress > 100) {
+      this.debug(`⚠️ Progress calculation error: currentIndex=${this.currentIndex}, textLength=${this.text.length}, rawProgress=${rawProgress}%`);
+    }
+    return Math.min(100, rawProgress); 
+  }
   public getStats(): TypingStats { return { ...this.stats }; }
   public getMistakes(): MistakeInfo[] { return [...this.mistakes]; }
   public getEvents(): TypingEvent[] { return [...this.events]; }
@@ -916,10 +925,15 @@ export class TypingEngine {
   }
 
   public updateText(newText: string): void {
+    const wasTyping = this.state === 'typing' || this.state === 'correcting' || this.state === 'thinking';
     this.stop();
     this.text = newText ?? ''; // Handle null/undefined text
     this.reset();
-    // Do not auto-restart - let the caller decide whether to start
+    
+    // Auto-restart if was previously typing
+    if (wasTyping) {
+      this.start();
+    }
   }
 
   // Debug method to check mistake correction status

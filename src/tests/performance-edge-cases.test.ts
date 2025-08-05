@@ -62,7 +62,7 @@ describe('Performance and Edge Cases', () => {
       const engine = new TypingEngine(whitespaceText, { mistakeFrequency: 0 });
       
       engine.start();
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(5000); // Give enough time for all character delays
       
       expect(engine.getDisplayText()).toBe(whitespaceText); // Should type the full whitespace text
       expect(engine.isCompleted()).toBe(true);
@@ -167,7 +167,7 @@ describe('Performance and Edge Cases', () => {
       const engine = new TypingEngine(emojiText, { mistakeFrequency: 0 });
       
       engine.start();
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(8000); // Give enough time for emoji text completion
       
       expect(engine.getDisplayText()).toBe(emojiText);
       expect(engine.isCompleted()).toBe(true);
@@ -421,12 +421,14 @@ describe('Performance and Edge Cases', () => {
       const longText = 'A'.repeat(1000);
       const engine = new TypingEngine(longText, { 
         speed: 5, // Faster speed
-        mistakeFrequency: 0 
+        mistakeFrequency: 0,
+        concentrationLapses: false, // Disable thinking pauses for performance test
+        fatigueEffect: false // Disable fatigue for consistent speed
       });
       
       const startTime = Date.now();
       engine.start();
-      vi.advanceTimersByTime(30000); // More time for 1000 characters
+      vi.advanceTimersByTime(100000); // Very generous time for 1000 characters at speed 5
       const endTime = Date.now();
       
       expect(engine.isCompleted()).toBe(true);

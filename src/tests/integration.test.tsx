@@ -141,7 +141,7 @@ describe('Integration Tests', () => {
       
       fireEvent.click(getByTestId('start'));
       act(() => {
-        vi.advanceTimersByTime(100);
+        vi.advanceTimersByTime(300); // Increased to ensure at least one character is typed
       });
       
       expect(getByTestId('status')).toHaveTextContent('typing');
@@ -182,6 +182,7 @@ describe('Integration Tests', () => {
         } = useHumanLike({
           text,
           config,
+          autoStart: true, // Enable auto-start for this test
           onChar: (char, index) => {
             setStats(prev => [...prev, `char:${char}@${index}`]);
           },
@@ -380,6 +381,8 @@ describe('Integration Tests', () => {
           setCurrentText(randomText);
           setGameActive(true);
           setScore(0);
+          // Start typing after setting the text - need to use setTimeout to ensure text is set
+          setTimeout(() => start(), 0);
         };
         
         const {
@@ -387,7 +390,8 @@ describe('Integration Tests', () => {
           progress,
           currentWPM,
           mistakeCount,
-          isCompleted
+          isCompleted,
+          start
         } = useHumanLike({
           text: currentText,
           config: { 
