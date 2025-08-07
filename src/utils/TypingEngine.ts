@@ -31,6 +31,7 @@ export class TypingEngine {
   private displayText: string = '';
   private state: TypingState = 'idle';
   private timeoutId: number | null = null;
+  private keyTimeouts: Set<number> = new Set(); // Track all keyboard timing timeouts
   private stats: TypingStats;
   private events: TypingEvent[] = [];
   private mistakes: MistakeInfo[] = [];
@@ -123,6 +124,11 @@ export class TypingEngine {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
+    
+    // Clear all keyboard timing timeouts
+    this.keyTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.keyTimeouts.clear();
+    
     // Cancel all pending corrections
     for (const mistake of this.mistakes) {
       if (!mistake.corrected) {
@@ -273,10 +279,14 @@ export class TypingEngine {
     // Fire onKey callbacks for each key in the sequence with scaled timing
     let cumulativeDelay = 0;
     scaledKeys.forEach((keyInfo) => {
-      setTimeout(() => {
+      const keyTimeoutId = window.setTimeout(() => {
         this.safeCallback(this.onKey, keyInfo);
         this.debug(`🔑 Key press: "${keyInfo.key}" (${keyInfo.type}) - ${keyInfo.duration}ms`);
+        // Remove completed timeout from tracking
+        this.keyTimeouts.delete(keyTimeoutId);
       }, cumulativeDelay);
+      // Track this timeout so it can be cleared if needed
+      this.keyTimeouts.add(keyTimeoutId);
       cumulativeDelay += keyInfo.duration;
     });
     

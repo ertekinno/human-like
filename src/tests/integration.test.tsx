@@ -141,7 +141,7 @@ describe('Integration Tests', () => {
       
       fireEvent.click(getByTestId('start'));
       act(() => {
-        vi.advanceTimersByTime(1000); // Increased for keyboard simulation timing
+        vi.advanceTimersByTime(2000);
       });
       
       expect(getByTestId('status')).toHaveTextContent('typing');
@@ -236,7 +236,7 @@ describe('Integration Tests', () => {
       // Change text
       fireEvent.click(getByTestId('change-text'));
       act(() => {
-        vi.advanceTimersByTime(5000); // Increased for full text completion with keyboard simulation
+        vi.advanceTimersByTime(4000);
       });
       
       expect(getByTestId('display')).toHaveTextContent('Changed text');
@@ -443,7 +443,7 @@ describe('Integration Tests', () => {
       expect(getByTestId('game-status')).toHaveTextContent('Playing');
       
       act(() => {
-        vi.advanceTimersByTime(15000);
+        vi.advanceTimersByTime(20000);
       });
       
       expect(getByTestId('game-status')).toHaveTextContent('Ready');
