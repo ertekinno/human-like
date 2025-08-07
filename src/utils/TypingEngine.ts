@@ -4,12 +4,13 @@ import type {
   MistakeType,
   TypingState,
   TypingEvent,
-  TypingStats
+  TypingStats,
+  KeyInfo
 } from '../types';
 import {
   TIMING_CONSTANTS,
   BEHAVIOR_RATES,
-  QWERTY_ADJACENT,
+  getAdjacentKeys,
   COMMON_WORDS,
   COMMON_TYPOS,
   SPECIAL_CHARS,
@@ -19,11 +20,9 @@ import {
   SENTENCE_ENDINGS,
   CLAUSE_SEPARATORS,
   LINE_BREAK_CHARS,
-  LETTER_FREQUENCY,
-  VOWELS,
-  LEFT_HAND_KEYS,
   DEFAULT_CONFIG
 } from '../constants';
+import { KeyboardAnalyzer } from '../keyboard/KeyboardAnalyzer';
 
 export class TypingEngine {
   private config: HumanLikeConfig;
@@ -39,9 +38,11 @@ export class TypingEngine {
   private isCorrectingMistake: boolean = false;
   private charactersTyped: number = 0;
   private fatigueLevel: number = 0;
-  private lastHandUsed: 'left' | 'right' | null = null;
   private pauseStartTime: number = 0;
   private totalPausedTime: number = 0;
+  
+  // Keyboard simulation - always enabled now
+  private keyboardAnalyzer: KeyboardAnalyzer;
   
   // Event callbacks
   private onStateChange?: (state: TypingState) => void;
@@ -50,11 +51,25 @@ export class TypingEngine {
   private onBackspace?: () => void;
   private onComplete?: () => void;
   private onProgress?: (progress: number) => void;
+  private onKey?: (keyInfo: KeyInfo) => void;
 
   constructor(text: string, config: Partial<HumanLikeConfig> = {}) {
     this.text = text ?? ''; // Handle null/undefined text
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.stats = this.initializeStats();
+    
+    // Set callback from config if provided
+    if (this.config.onKey) {
+      this.onKey = this.config.onKey;
+    }
+    
+    // Initialize keyboard analyzer - now always enabled
+    this.keyboardAnalyzer = new KeyboardAnalyzer({
+      keyboardMode: this.config.keyboardMode || 'mobile',
+      capsLockThreshold: TIMING_CONSTANTS.CAPS_SEQUENCE_THRESHOLD,
+      useNaturalTiming: true, // Always use natural keyboard timing
+      debug: this.config.debug
+    });
   }
 
   private debug(...args: any[]): void {
@@ -159,7 +174,6 @@ export class TypingEngine {
     this.displayText = '';
     this.charactersTyped = 0;
     this.fatigueLevel = 0;
-    this.lastHandUsed = null;
     this.mistakes = [];
     this.correctionQueue = [];
     this.isCorrectingMistake = false;
@@ -195,7 +209,7 @@ export class TypingEngine {
     }
 
     const char = this.text[this.currentIndex];
-    const delay = this.calculateCharacterDelay(char);
+    const delay = this.calculateCharacterDelayWithKeyboard(char);
     
     // Skip concentration lapses for the first character to maintain predictable initial state
     if (this.currentIndex > 0 && this.shouldHaveConcentrationLapse()) {
@@ -212,9 +226,6 @@ export class TypingEngine {
     // Check if we should make a mistake
     const shouldMakeMistake = this.shouldMakeMistake(char);
     
-    // For significant delays (>200ms), show thinking state during the pause, but not for first character
-    const isSignificantPause = delay > 200 && this.currentIndex > 0;
-    
     // Use requestAnimationFrame for better performance on fast typing
     if (delay < 30) {
       requestAnimationFrame(() => {
@@ -224,22 +235,6 @@ export class TypingEngine {
           this.typeCharacter(char);
         }
       });
-    } else if (isSignificantPause) {
-      // Set thinking state for longer pauses (sentence, word, thinking pauses)
-      this.state = 'thinking';
-      this.safeCallback(this.onStateChange, 'thinking');
-      
-      this.timeoutId = window.setTimeout(() => {
-        // Return to typing state before actually typing
-        this.state = 'typing';
-        this.safeCallback(this.onStateChange, 'typing');
-        
-        if (shouldMakeMistake) {
-          this.makeMistake(char);
-        } else {
-          this.typeCharacter(char);
-        }
-      }, delay);
     } else {
       // Normal delay without state change
       this.timeoutId = window.setTimeout(() => {
@@ -252,100 +247,78 @@ export class TypingEngine {
     }
   }
 
-  private calculateCharacterDelay(char: string): number {
-    let baseDelay = this.config.speed;
+  /**
+   * Calculate character delay using natural keyboard timing
+   * This revolutionary approach replaces artificial delays with realistic key sequences
+   */
+  private calculateCharacterDelayWithKeyboard(char: string): number {
+    
+    // Generate key sequence for this character
+    const keySequence = this.keyboardAnalyzer.analyzeCharacter(char, this.currentIndex, this.text);
+    
+    // Apply user's speed configuration as a multiplier to the natural timing
+    // Default keyboard timing assumes ~80ms base speed, so we scale accordingly
+    const speedMultiplier = this.config.speed / 80.0;
+    
+    // Scale all key durations by the speed multiplier
+    const scaledKeys = keySequence.keys.map(keyInfo => ({
+      ...keyInfo,
+      duration: Math.round(keyInfo.duration * speedMultiplier)
+    }));
+    
+    const scaledTotalDuration = scaledKeys.reduce((sum, key) => sum + key.duration, 0);
+    
+    this.debug(`🎹 Natural timing for "${char}": ${scaledKeys.length} keys, ${scaledTotalDuration}ms total (speed: ${this.config.speed}ms, multiplier: ${speedMultiplier.toFixed(2)})`);
+    
+    // Fire onKey callbacks for each key in the sequence with scaled timing
+    let cumulativeDelay = 0;
+    scaledKeys.forEach((keyInfo) => {
+      setTimeout(() => {
+        this.safeCallback(this.onKey, keyInfo);
+        this.debug(`🔑 Key press: "${keyInfo.key}" (${keyInfo.type}) - ${keyInfo.duration}ms`);
+      }, cumulativeDelay);
+      cumulativeDelay += keyInfo.duration;
+    });
+    
+    // Return the total time for all keys in the sequence
+    // This replaces the old artificial CAPS_LOCK_ON_DELAY + SYMBOL_BASE_PENALTY approach
+    let totalDelay = scaledTotalDuration;
     
     // Apply speed variation
     const variation = (Math.random() - 0.5) * 2 * this.config.speedVariation;
-    baseDelay += variation;
+    totalDelay += variation;
     
-    // 1. CAPS LOCK vs SHIFT KEY LOGIC - Smart detection for capital letters
-    if (char.match(/[A-Z]/)) {
-      const capsInfo = this.getCapsLockInfo(this.currentIndex);
-      
-      if (capsInfo.isCapsLockSequence) {
-        // CAPS LOCK mode: Only first and last letters get delays
-        if (capsInfo.isFirst) {
-          baseDelay += TIMING_CONSTANTS.CAPS_LOCK_ON_DELAY; // Press CAPS LOCK + type letter
-          this.debug(`🔠 CAPS LOCK ON: "${char}" gets +${TIMING_CONSTANTS.CAPS_LOCK_ON_DELAY}ms`);
-        } else if (capsInfo.isLast) {
-          baseDelay += TIMING_CONSTANTS.CAPS_LOCK_OFF_DELAY; // Type letter + turn off CAPS LOCK
-          this.debug(`🔡 CAPS LOCK OFF: "${char}" gets +${TIMING_CONSTANTS.CAPS_LOCK_OFF_DELAY}ms`);
-        } else {
-          // Middle of CAPS LOCK sequence - normal speed
-          this.debug(`🔠 CAPS LOCK MIDDLE: "${char}" normal speed`);
-        }
-      } else {
-        // Single capital or short sequence - use SHIFT
-        baseDelay += TIMING_CONSTANTS.SHIFT_HESITATION;
-        this.debug(`⇧ SHIFT: "${char}" gets +${TIMING_CONSTANTS.SHIFT_HESITATION}ms`);
-      }
-    } else if (SHIFT_CHARS.has(char)) {
-      // Non-letter symbols requiring shift
-      baseDelay += TIMING_CONSTANTS.SHIFT_HESITATION;
-    }
-    
-    // 2. NUMBER ROW DIFFICULTY - Numbers are inherently harder
-    if (NUMBER_CHARS.has(char)) {
-      baseDelay += TIMING_CONSTANTS.NUMBER_ROW_PENALTY;
-      // Numbers have higher mistake rate (handled in shouldMakeMistake)
-    }
-    
-    // 3. SYMBOL COMPLEXITY - Different symbols have different difficulty levels
-    if (SYMBOL_COMPLEXITY[char]) {
-      const complexityLevel = SYMBOL_COMPLEXITY[char];
-      baseDelay += TIMING_CONSTANTS.SYMBOL_BASE_PENALTY * complexityLevel;
-    }
-    
-    // Existing character type adjustments
-    if (SPECIAL_CHARS.has(char)) {
-      baseDelay *= 1.2; // Reduced from 1.5 since we have specific symbol handling now
-    } else if (VOWELS.has(char.toLowerCase())) {
-      baseDelay *= 0.9; // Vowels are faster
-    }
-    
-    // Adjust for letter frequency
-    const frequency = LETTER_FREQUENCY[char.toLowerCase()] || 1;
-    baseDelay *= Math.max(0.7, 1 - (frequency / 100)); // More frequent letters are faster
-    
-    // Check for hand alternation
-    const currentHand = this.getCurrentHand(char);
-    if (this.lastHandUsed && currentHand !== this.lastHandUsed) {
-      baseDelay *= 0.85; // Alternating hands is faster
-    }
-    this.lastHandUsed = currentHand;
-    
-    // Apply fatigue
+    // Apply fatigue and other human factors
     if (this.config.fatigueEffect) {
-      baseDelay += this.fatigueLevel;
+      totalDelay += this.fatigueLevel;
       this.fatigueLevel += TIMING_CONSTANTS.FATIGUE_INCREMENT;
     }
     
     // Check for burst typing
     if (Math.random() < BEHAVIOR_RATES.BURST_TYPING) {
-      baseDelay *= TIMING_CONSTANTS.BURST_SPEED_MULTIPLIER;
+      totalDelay *= TIMING_CONSTANTS.BURST_SPEED_MULTIPLIER;
     }
     
-    // Add pauses for punctuation and line breaks
+    // Add pauses for punctuation and structure (these are still relevant)
     if (SENTENCE_ENDINGS.has(char)) {
-      baseDelay += this.config.sentencePause;
+      totalDelay += this.config.sentencePause;
     } else if (CLAUSE_SEPARATORS.has(char)) {
-      baseDelay += TIMING_CONSTANTS.COMMA_PAUSE;
+      totalDelay += TIMING_CONSTANTS.COMMA_PAUSE;
     } else if (LINE_BREAK_CHARS.has(char)) {
-      // Line breaks get a longer pause (like pressing Enter)
-      baseDelay += TIMING_CONSTANTS.LINE_BREAK;
+      totalDelay += TIMING_CONSTANTS.LINE_BREAK;
     } else if (char === ' ') {
-      baseDelay += this.config.wordPause;
+      totalDelay += this.config.wordPause;
       
       // Check if next word is complex (should add thinking pause)
       const nextWord = this.getNextWord();
       if (nextWord && this.isComplexWord(nextWord)) {
-        baseDelay += this.config.thinkingPause;
+        totalDelay += this.config.thinkingPause;
       }
     }
     
-    return Math.max(this.config.minCharDelay, baseDelay);
+    return Math.max(this.config.minCharDelay, totalDelay);
   }
+
 
   private shouldMakeMistake(char: string): boolean {
     // Don't make mistakes on spaces, line breaks, or at the beginning
@@ -494,6 +467,21 @@ export class TypingEngine {
           timestamp: Date.now()
         });
         
+        // Generate keyboard simulation for backspace
+        if (this.keyboardAnalyzer && this.onKey) {
+          const backspaceSequence = this.keyboardAnalyzer.analyzeBackspace();
+          const speedMultiplier = this.config.speed / 80.0;
+          const scaledKeys = backspaceSequence.keys.map(keyInfo => ({
+            ...keyInfo,
+            duration: Math.round(keyInfo.duration * speedMultiplier)
+          }));
+          
+          // Emit all keys in the backspace sequence
+          scaledKeys.forEach(keyInfo => {
+            this.safeCallback(this.onKey, keyInfo);
+          });
+        }
+        
         this.safeCallback(this.onBackspace);
         
         this.debug(`⬅️ Backspace ${deletedCount}/${charsToDelete}: "${this.displayText}" (length: ${this.displayText.length})`);
@@ -573,7 +561,8 @@ export class TypingEngine {
   private selectMistakeType(char: string): MistakeType {
     const types: MistakeType[] = [];
     
-    if (this.config.mistakeTypes.adjacent && QWERTY_ADJACENT[char.toLowerCase()]) {
+    const adjacentKeys = getAdjacentKeys(this.config.keyboardMode || 'desktop');
+    if (this.config.mistakeTypes.adjacent && adjacentKeys[char.toLowerCase()]) {
       types.push('adjacent');
     }
     if (this.config.mistakeTypes.random) {
@@ -602,7 +591,8 @@ export class TypingEngine {
     
     switch (type) {
       case 'adjacent':
-        const adjacent = QWERTY_ADJACENT[originalChar.toLowerCase()];
+        const adjacentKeys = getAdjacentKeys(this.config.keyboardMode || 'desktop');
+        const adjacent = adjacentKeys[originalChar.toLowerCase()];
         if (adjacent && adjacent.length > 0) {
           let mistakeChar = adjacent[Math.floor(Math.random() * adjacent.length)];
           // CAPS LOCK LOGIC: Match the case of the original character
@@ -631,9 +621,10 @@ export class TypingEngine {
           }
         }
         // Fallback to adjacent key mistake if no common typo available
-        const adjacentKeys = QWERTY_ADJACENT[originalChar.toLowerCase()];
-        if (adjacentKeys && adjacentKeys.length > 0) {
-          let mistakeChar = adjacentKeys[Math.floor(Math.random() * adjacentKeys.length)];
+        const fallbackAdjacentKeys = getAdjacentKeys(this.config.keyboardMode || 'desktop');
+        const fallbackKeys = fallbackAdjacentKeys[originalChar.toLowerCase()];
+        if (fallbackKeys && fallbackKeys.length > 0) {
+          let mistakeChar = fallbackKeys[Math.floor(Math.random() * fallbackKeys.length)];
           // CAPS LOCK LOGIC: Match the case of the original character
           return isOriginalUppercase ? mistakeChar.toUpperCase() : mistakeChar.toLowerCase();
         }
@@ -648,9 +639,6 @@ export class TypingEngine {
     return this.config.concentrationLapses && Math.random() < BEHAVIOR_RATES.CONCENTRATION_LAPSE;
   }
 
-  private getCurrentHand(char: string): 'left' | 'right' {
-    return LEFT_HAND_KEYS.has(char.toLowerCase()) ? 'left' : 'right';
-  }
 
   private getNextWord(): string | null {
     const remainingText = this.text.slice(this.currentIndex + 1);
@@ -681,84 +669,6 @@ export class TypingEngine {
     return word.length > 7 || !COMMON_WORDS.has(word.toLowerCase());
   }
 
-  // Helper method to detect CAPS LOCK sequences (smart multi-word detection)
-  private getCapsLockInfo(charIndex: number): { isCapsLockSequence: boolean; isFirst: boolean; isLast: boolean } {
-    const char = this.text[charIndex];
-    
-    // Not a capital letter, definitely not caps lock
-    if (!char.match(/[A-Z]/)) {
-      return { isCapsLockSequence: false, isFirst: false, isLast: false };
-    }
-    
-    // Find the start and end of CAPS region (including spaces between caps words)
-    let sequenceStart = charIndex;
-    let sequenceEnd = charIndex;
-    
-    // Go backward to find start (skip over spaces between caps words)
-    while (sequenceStart > 0) {
-      const prevChar = this.text[sequenceStart - 1];
-      if (prevChar.match(/[A-Z]/)) {
-        sequenceStart--;
-      } else if (prevChar === ' ') {
-        // Check if there's a caps word before the space
-        let beforeSpace = sequenceStart - 2;
-        if (beforeSpace >= 0 && this.text[beforeSpace].match(/[A-Z]/)) {
-          sequenceStart--;
-          continue;
-        } else {
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-    
-    // Go forward to find end (skip over spaces between caps words)
-    while (sequenceEnd < this.text.length - 1) {
-      const nextChar = this.text[sequenceEnd + 1];
-      if (nextChar.match(/[A-Z]/)) {
-        sequenceEnd++;
-      } else if (nextChar === ' ') {
-        // Check if there's a caps word after the space
-        let afterSpace = sequenceEnd + 2;
-        if (afterSpace < this.text.length && this.text[afterSpace].match(/[A-Z]/)) {
-          sequenceEnd++;
-          continue;
-        } else {
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-    
-    // Count only the capital letters (excluding spaces) to determine if it's caps lock worthy
-    let capitalCount = 0;
-    for (let i = sequenceStart; i <= sequenceEnd; i++) {
-      if (this.text[i].match(/[A-Z]/)) {
-        capitalCount++;
-      }
-    }
-    
-    const isCapsLockSequence = capitalCount >= TIMING_CONSTANTS.CAPS_SEQUENCE_THRESHOLD;
-    
-    // Find the first and last CAPITAL letters in the sequence (not spaces)
-    let firstCapitalIndex = sequenceStart;
-    while (firstCapitalIndex <= sequenceEnd && !this.text[firstCapitalIndex].match(/[A-Z]/)) {
-      firstCapitalIndex++;
-    }
-    
-    let lastCapitalIndex = sequenceEnd;
-    while (lastCapitalIndex >= sequenceStart && !this.text[lastCapitalIndex].match(/[A-Z]/)) {
-      lastCapitalIndex--;
-    }
-    
-    return {
-      isCapsLockSequence,
-      isFirst: isCapsLockSequence && charIndex === firstCapitalIndex,
-      isLast: isCapsLockSequence && charIndex === lastCapitalIndex
-    };
-  }
 
   // Helper method for look-ahead typing behavior
   private shouldMakeLookAheadMistake(): boolean {
@@ -917,6 +827,10 @@ export class TypingEngine {
   
   public onProgressListener(callback: (progress: number) => void): void {
     this.onProgress = callback;
+  }
+  
+  public onKeyListener(callback: (keyInfo: KeyInfo) => void): void {
+    this.onKey = callback;
   }
 
   // Configuration updates

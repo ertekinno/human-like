@@ -141,7 +141,7 @@ describe('Integration Tests', () => {
       
       fireEvent.click(getByTestId('start'));
       act(() => {
-        vi.advanceTimersByTime(300); // Increased to ensure at least one character is typed
+        vi.advanceTimersByTime(1000); // Increased for keyboard simulation timing
       });
       
       expect(getByTestId('status')).toHaveTextContent('typing');
@@ -220,7 +220,7 @@ describe('Integration Tests', () => {
       const { getByTestId } = render(<ComplexComponent />);
       
       act(() => {
-        vi.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(5000); // Increased for keyboard simulation timing
       });
       
       expect(getByTestId('progress')).toHaveTextContent('100');
@@ -236,7 +236,7 @@ describe('Integration Tests', () => {
       // Change text
       fireEvent.click(getByTestId('change-text'));
       act(() => {
-        vi.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(5000); // Increased for full text completion with keyboard simulation
       });
       
       expect(getByTestId('display')).toHaveTextContent('Changed text');

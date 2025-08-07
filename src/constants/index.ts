@@ -40,8 +40,8 @@ export const BEHAVIOR_RATES = {
   OVERCORRECTION_RATE: 0.2,    // 20% chance of making mistake while correcting
 } as const;
 
-// QWERTY keyboard layout for adjacent key mistakes
-export const QWERTY_ADJACENT: Record<string, string[]> = {
+// Desktop QWERTY keyboard layout for adjacent key mistakes
+export const DESKTOP_ADJACENT: Record<string, string[]> = {
   'q': ['w', 'a', 's'],
   'w': ['q', 'e', 'a', 's', 'd'],
   'e': ['w', 'r', 's', 'd', 'f'],
@@ -80,6 +80,64 @@ export const QWERTY_ADJACENT: Record<string, string[]> = {
   
   ' ': ['c', 'v', 'b', 'n', 'm'], // Space bar adjacent to bottom row
 };
+
+// Mobile keyboard layout for adjacent key mistakes (touch-based errors)
+export const MOBILE_ADJACENT: Record<string, string[]> = {
+  // Top row - mobile keyboards often have tighter spacing
+  'q': ['w', 'a', 's'], // Less diagonal mistakes on mobile
+  'w': ['q', 'e', 's', 'a'], // More focused on immediate neighbors
+  'e': ['w', 'r', 'd', 's'], 
+  'r': ['e', 't', 'f', 'd'],
+  't': ['r', 'y', 'g', 'f'],
+  'y': ['t', 'u', 'h', 'g'],
+  'u': ['y', 'i', 'j', 'h'],
+  'i': ['u', 'o', 'k', 'j'],
+  'o': ['i', 'p', 'l', 'k'],
+  'p': ['o', 'l'],
+
+  // Middle row - more fat finger mistakes due to touch
+  'a': ['q', 'w', 's', 'z'], 
+  's': ['a', 'd', 'w', 'e', 'z', 'x'], // High mistake area on mobile
+  'd': ['s', 'f', 'e', 'r', 'x', 'c'],
+  'f': ['d', 'g', 'r', 't', 'c', 'v'],
+  'g': ['f', 'h', 't', 'y', 'v', 'b'],
+  'h': ['g', 'j', 'y', 'u', 'b', 'n'],
+  'j': ['h', 'k', 'u', 'i', 'n', 'm'],
+  'k': ['j', 'l', 'i', 'o', 'm'],
+  'l': ['k', 'o', 'p'],
+
+  // Bottom row - spacebar interference more common on mobile
+  'z': ['a', 's', 'x'], 
+  'x': ['z', 'c', 's', 'd'],
+  'c': ['x', 'v', 'd', 'f', ' '], // Space bar mistakes more common
+  'v': ['c', 'b', 'f', 'g', ' '],
+  'b': ['v', 'n', 'g', 'h', ' '],
+  'n': ['b', 'm', 'h', 'j', ' '],
+  'm': ['n', 'j', 'k', ' '],
+
+  // Space bar - different pattern on mobile due to wider space key
+  ' ': ['c', 'v', 'b', 'n', 'm', 'x', 'z'], // Includes more bottom row keys
+  
+  // Numbers often above letters on mobile, but closer spacing
+  '1': ['2', 'q', 'w'],
+  '2': ['1', '3', 'q', 'w', 'e'],
+  '3': ['2', '4', 'w', 'e', 'r'],
+  '4': ['3', '5', 'e', 'r', 't'],
+  '5': ['4', '6', 'r', 't', 'y'],
+  '6': ['5', '7', 't', 'y', 'u'],
+  '7': ['6', '8', 'y', 'u', 'i'],
+  '8': ['7', '9', 'u', 'i', 'o'],
+  '9': ['8', '0', 'i', 'o', 'p'],
+  '0': ['9', 'o', 'p'],
+};
+
+// Legacy export for backward compatibility
+export const QWERTY_ADJACENT = DESKTOP_ADJACENT;
+
+// Helper function to get appropriate adjacent keys based on keyboard mode
+export function getAdjacentKeys(keyboardMode: 'mobile' | 'desktop'): Record<string, string[]> {
+  return keyboardMode === 'mobile' ? MOBILE_ADJACENT : DESKTOP_ADJACENT;
+}
 
 // Common words that are typed faster due to muscle memory
 export const COMMON_WORDS = new Set([
@@ -205,6 +263,8 @@ export const DEFAULT_CONFIG: HumanLikeConfig = {
   backspaceSpeed: TIMING_CONSTANTS.BACKSPACE_SPEED,
   realizationDelay: TIMING_CONSTANTS.REALIZATION_DELAY,
   correctionPause: TIMING_CONSTANTS.CORRECTION_PAUSE,
+  // Keyboard simulation defaults
+  keyboardMode: 'mobile'
 };
 
 // Letter frequency in English (affects typing speed)

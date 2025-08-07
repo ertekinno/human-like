@@ -19,6 +19,9 @@ export interface HumanLikeConfig {
   backspaceSpeed: number;
   realizationDelay: number;
   correctionPause: number;
+  // Keyboard simulation options
+  keyboardMode?: 'mobile' | 'desktop';
+  onKey?: (keyInfo: any) => void; // Will be properly typed after re-export
 }
 
 export interface HumanLikeProps {
@@ -38,6 +41,9 @@ export interface HumanLikeProps {
   onBackspace?: (id?: string) => void;
   onPause?: (id?: string) => void;
   onResume?: (id?: string) => void;
+  // Keyboard simulation props
+  keyboardMode?: 'mobile' | 'desktop';
+  onKey?: (keyInfo: any, id?: string) => void; // Will be properly typed after re-export
   className?: string;
   style?: React.CSSProperties;
 }
@@ -115,3 +121,6 @@ export interface WordInfo {
   startIndex: number;
   endIndex: number;
 }
+
+// Re-export keyboard types for convenience
+export type { KeyInfo, KeySequence, KeyboardMode } from '../keyboard/types';

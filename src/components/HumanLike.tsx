@@ -19,6 +19,8 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
   onBackspace,
   onPause,
   onResume,
+  keyboardMode,
+  onKey,
   className,
   style,
   ...props
@@ -51,7 +53,9 @@ export const HumanLike: React.FC<HumanLikeProps> = ({
     onMistake,
     onBackspace,
     onPause,
-    onResume
+    onResume,
+    keyboardMode,
+    onKey
   });
 
   // Apply user styles only

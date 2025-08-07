@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { HumanLikeConfig, HumanLikeHookReturn, TypingState, MistakeInfo } from '../types';
+import type { HumanLikeConfig, HumanLikeHookReturn, TypingState, MistakeInfo, KeyInfo } from '../types';
 import { TypingEngine } from '../utils/TypingEngine';
 
 interface UseHumanLikeOptions {
@@ -18,6 +18,9 @@ interface UseHumanLikeOptions {
   onPause?: () => void;
   onResume?: () => void;
   onStateChange?: (state: TypingState) => void;
+  // Keyboard simulation options
+  keyboardMode?: 'mobile' | 'desktop';
+  onKey?: (keyInfo: KeyInfo, id?: string) => void;
 }
 
 export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn {
@@ -35,7 +38,9 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     onBackspace,
     onPause,
     onResume,
-    onStateChange
+    onStateChange,
+    keyboardMode,
+    onKey
   } = options;
 
   // Core state
@@ -85,7 +90,14 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
 
   // Initialize typing engine once
   useEffect(() => {
-    const typingEngine = new TypingEngine(text, config);
+    // Merge keyboard options into config
+    const enhancedConfig = {
+      ...config,
+      ...(keyboardMode && { keyboardMode }),
+      ...(onKey && { onKey: (keyInfo: KeyInfo) => onKey(keyInfo, id) })
+    };
+    
+    const typingEngine = new TypingEngine(text, enhancedConfig);
     engineRef.current = typingEngine;
     
     // Initial state sync
@@ -141,6 +153,13 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       setMistakeCount(typingEngine.getMistakes().length);
       onMistake?.(mistake, id);
     });
+    
+    // Set up keyboard simulation listener if provided
+    if (onKey) {
+      typingEngine.onKeyListener((keyInfo) => {
+        onKey(keyInfo, id);
+      });
+    }
 
     // Optimize backspace updates
     typingEngine.onBackspaceListener(() => {

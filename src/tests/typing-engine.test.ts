@@ -171,7 +171,7 @@ describe('TypingEngine', () => {
       const engine = new TypingEngine('Line 1\nLine 2', { mistakeFrequency: 0 });
       
       engine.start();
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(15000); // Increased timeout for keyboard timing system
       
       expect(engine.getDisplayText()).toBe('Line 1\nLine 2');
       expect(engine.isCompleted()).toBe(true);
@@ -297,7 +297,7 @@ describe('TypingEngine', () => {
       // Configuration should be updated (we can't directly test internal config,
       // but we can verify the engine still works)
       engine.start();
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(2000); // Increased for keyboard simulation timing
       
       expect(engine.getProgress()).toBeGreaterThan(0);
     });
@@ -413,7 +413,7 @@ describe('TypingEngine', () => {
       const engine = new TypingEngine('Hello WORLD test', { mistakeFrequency: 0 });
       
       engine.start();
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(15000); // Increased timeout for keyboard timing system
       
       expect(engine.getDisplayText()).toBe('Hello WORLD test');
       expect(engine.isCompleted()).toBe(true);
@@ -560,7 +560,7 @@ describe('TypingEngine', () => {
       engine.updateText('New');
       
       // Should automatically restart
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(2000); // Increased for keyboard simulation timing
       
       expect(engine.getDisplayText()).toBe('New');
       expect(engine.isCompleted()).toBe(true);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useHumanLike } from './index';
+import { KeyboardSimulationDemo } from './components/KeyboardSimulationDemo';
 import type { HumanLikeConfig } from './types';
 
 // Configurable Demo Component
@@ -611,6 +612,13 @@ function initializeDemos() {
     if (demo2Element) {
       const root2 = ReactDOM.createRoot(demo2Element);
       root2.render(<PresetDemo />);
+    }
+
+    // NEW: Keyboard Simulation Demo
+    const keyboardDemoElement = document.getElementById('keyboard-demo');
+    if (keyboardDemoElement) {
+      const keyboardRoot = ReactDOM.createRoot(keyboardDemoElement);
+      keyboardRoot.render(<KeyboardSimulationDemo />);
     }
   } catch (error) {
     console.error('Failed to initialize demos:', error);
