@@ -65,6 +65,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
   const [showCursor, setShowCursor] = useState(initialShowCursor);
   const [cursorCharState, setCursorCharState] = useState(options.cursorChar || '|');
   const [cursorBlinkSpeedState, setCursorBlinkSpeedState] = useState(cursorBlinkSpeed);
+  
 
   // Refs
   const engineRef = useRef<TypingEngine | null>(null);

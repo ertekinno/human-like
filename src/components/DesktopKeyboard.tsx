@@ -58,8 +58,7 @@ export const DesktopKeyboard: React.FC<DesktopKeyboardProps> = ({
   };
 
 
-  const getKeyStyle = (keyValue: string, isModifier = false, width = 45) => {
-    // Better key matching - handle various key representations  
+  const getKeyClasses = (keyValue: string, isModifier = false) => {
     const normalizeKey = (k: string) => {
       if (k === 'caps lock' || k === 'CAPS') return 'caps lock';
       if (k === 'caps') return 'caps lock';
@@ -74,82 +73,36 @@ export const DesktopKeyboard: React.FC<DesktopKeyboardProps> = ({
                     normalizeKey(highlightedKey || '') === normalizeKey(keyValue) ||
                     (keyValue === 'shift' && shiftPressed);
     
-    const baseStyle = {
-      width: `${width}px`,
-      height: '45px',
-      margin: '2px',
-      border: 'none',
-      borderRadius: '6px',
-      fontSize: isModifier ? '12px' : '14px',
-      fontWeight: '500',
-      cursor: 'pointer',
-      transition: 'all 0.1s ease',
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'SF Mono, Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Times New Roman", monospace'
-    };
-
-    if (keyboardMode === 'dark') {
-      return {
-        ...baseStyle,
-        backgroundColor: isActive ? '#0066cc' : isModifier ? '#4a4a4a' : '#2a2a2a',
-        color: '#ffffff',
-        boxShadow: isActive ? '0 0 12px rgba(0, 102, 204, 0.6)' : '0 2px 4px rgba(0,0,0,0.4)',
-        transform: isActive ? 'scale(0.95)' : 'scale(1)',
-        border: '1px solid #4a4a4a'
-      };
-    } else {
-      return {
-        ...baseStyle,
-        backgroundColor: isActive ? '#007AFF' : isModifier ? '#e5e5ea' : '#ffffff',
-        color: isActive ? '#ffffff' : '#000000',
-        boxShadow: isActive ? '0 0 12px rgba(0, 122, 255, 0.4)' : '0 2px 4px rgba(0,0,0,0.1)',
-        transform: isActive ? 'scale(0.95)' : 'scale(1)',
-        border: '1px solid #d1d1d6'
-      };
-    }
+    let keyClasses = 'human-like-desktop-keyboard__key';
+    
+    // Add size-specific classes based on key type
+    if (keyValue === 'tab') keyClasses += ' human-like-desktop-keyboard__key--tab';
+    else if (keyValue === 'caps lock') keyClasses += ' human-like-desktop-keyboard__key--caps-lock';
+    else if (keyValue === 'shift') keyClasses += ' human-like-desktop-keyboard__key--shift';
+    else if (keyValue === 'enter') keyClasses += ' human-like-desktop-keyboard__key--enter';
+    else if (keyValue === 'backspace') keyClasses += ' human-like-desktop-keyboard__key--backspace';
+    else if (keyValue === 'space') keyClasses += ' human-like-desktop-keyboard__key--space';
+    else if (['ctrl', 'alt', 'cmd'].includes(keyValue)) keyClasses += ' human-like-desktop-keyboard__key--ctrl';
+    else if (isModifier) keyClasses += ' human-like-desktop-keyboard__key--function';
+    else if (/^\d$/.test(keyValue)) keyClasses += ' human-like-desktop-keyboard__key--number';
+    
+    // Add state classes
+    if (isActive) keyClasses += ' human-like-desktop-keyboard__key--active';
+    
+    return keyClasses;
   };
 
-  const containerStyle = {
-    padding: '25px',
-    backgroundColor: keyboardMode === 'dark' ? '#1c1c1e' : '#f2f2f7',
-    borderRadius: '12px',
-    boxShadow: keyboardMode === 'dark' 
-      ? '0 8px 32px rgba(0,0,0,0.6)' 
-      : '0 8px 32px rgba(0,0,0,0.1)',
-    maxWidth: '700px',
-    margin: '0 auto'
-  };
-
-  const rowStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '5px',
-    gap: '1px'
-  };
-
-  const headerStyle = {
-    textAlign: 'center' as const,
-    marginBottom: '20px',
-    color: keyboardMode === 'dark' ? '#ffffff' : '#000000',
-    fontSize: '16px',
-    fontWeight: '600',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-  };
+  // Remove inline styles - let CSS handle it
 
   return (
-    <div style={containerStyle}>
-      <div style={headerStyle}>
-        Desktop Keyboard (QWERTY)
-      </div>
+    <div className="human-like-desktop-keyboard" data-theme={keyboardMode}>
       
       {/* Number Row */}
-      <div style={rowStyle}>
+      <div className="human-like-desktop-keyboard__row">
         {numberRow.map((keyData) => (
           <button
             key={keyData.key}
-            style={getKeyStyle(keyData.key)}
+            className={getKeyClasses(keyData.key)}
             onClick={() => onKeyPress?.(keyData.key)}
           >
             <div style={{ textAlign: 'center', lineHeight: '1.2' }}>
@@ -158,20 +111,20 @@ export const DesktopKeyboard: React.FC<DesktopKeyboardProps> = ({
             </div>
           </button>
         ))}
-        <button style={getKeyStyle('backspace', true, 80)} onClick={() => onKeyPress?.('backspace')}>
+        <button className={getKeyClasses('backspace', true)} onClick={() => onKeyPress?.('backspace')}>
           ⌫
         </button>
       </div>
 
       {/* Top Row */}
-      <div style={rowStyle}>
-        <button style={getKeyStyle('tab', true, 60)} onClick={() => onKeyPress?.('tab')}>
+      <div className="human-like-desktop-keyboard__row">
+        <button className={getKeyClasses('tab', true)} onClick={() => onKeyPress?.('tab')}>
           tab
         </button>
         {topRow.map((key) => (
           <button
             key={key}
-            style={getKeyStyle(key)}
+            className={getKeyClasses(key)}
             onClick={() => onKeyPress?.(key)}
           >
             {getKeyDisplay(key)}
@@ -180,64 +133,64 @@ export const DesktopKeyboard: React.FC<DesktopKeyboardProps> = ({
       </div>
 
       {/* Home Row */}
-      <div style={rowStyle}>
-        <button style={getKeyStyle('caps lock', true, 70)} onClick={() => onKeyPress?.('caps lock')}>
+      <div className="human-like-desktop-keyboard__row">
+        <button className={getKeyClasses('caps lock', true)} onClick={() => onKeyPress?.('caps lock')}>
           caps lock
         </button>
         {homeRow.map((key) => (
           <button
             key={key}
-            style={getKeyStyle(key)}
+            className={getKeyClasses(key)}
             onClick={() => onKeyPress?.(key)}
           >
             {getKeyDisplay(key)}
           </button>
         ))}
-        <button style={getKeyStyle('enter', true, 80)} onClick={() => onKeyPress?.('enter')}>
+        <button className={getKeyClasses('enter', true)} onClick={() => onKeyPress?.('enter')}>
           ↵
         </button>
       </div>
 
       {/* Bottom Row */}
-      <div style={rowStyle}>
-        <button style={getKeyStyle('shift', true, 90)} onClick={() => onKeyPress?.('shift')}>
+      <div className="human-like-desktop-keyboard__row">
+        <button className={getKeyClasses('shift', true)} onClick={() => onKeyPress?.('shift')}>
           shift
         </button>
         {bottomRow.map((key) => (
           <button
             key={key}
-            style={getKeyStyle(key)}
+            className={getKeyClasses(key)}
             onClick={() => onKeyPress?.(key)}
           >
             {getKeyDisplay(key)}
           </button>
         ))}
-        <button style={getKeyStyle('shift', true, 90)} onClick={() => onKeyPress?.('shift')}>
+        <button className={getKeyClasses('shift', true)} onClick={() => onKeyPress?.('shift')}>
           shift
         </button>
       </div>
 
       {/* Space Row */}
-      <div style={rowStyle}>
-        <button style={getKeyStyle('ctrl', true, 60)} onClick={() => onKeyPress?.('ctrl')}>
+      <div className="human-like-desktop-keyboard__row">
+        <button className={getKeyClasses('ctrl', true)} onClick={() => onKeyPress?.('ctrl')}>
           ctrl
         </button>
-        <button style={getKeyStyle('alt', true, 50)} onClick={() => onKeyPress?.('alt')}>
+        <button className={getKeyClasses('alt', true)} onClick={() => onKeyPress?.('alt')}>
           alt
         </button>
-        <button style={getKeyStyle('cmd', true, 50)} onClick={() => onKeyPress?.('cmd')}>
+        <button className={getKeyClasses('cmd', true)} onClick={() => onKeyPress?.('cmd')}>
           cmd
         </button>
-        <button style={getKeyStyle('space', false, 300)} onClick={() => onKeyPress?.('space')}>
+        <button className={getKeyClasses('space', false)} onClick={() => onKeyPress?.('space')}>
           space
         </button>
-        <button style={getKeyStyle('cmd', true, 50)} onClick={() => onKeyPress?.('cmd')}>
+        <button className={getKeyClasses('cmd', true)} onClick={() => onKeyPress?.('cmd')}>
           cmd
         </button>
-        <button style={getKeyStyle('alt', true, 50)} onClick={() => onKeyPress?.('alt')}>
+        <button className={getKeyClasses('alt', true)} onClick={() => onKeyPress?.('alt')}>
           alt
         </button>
-        <button style={getKeyStyle('ctrl', true, 60)} onClick={() => onKeyPress?.('ctrl')}>
+        <button className={getKeyClasses('ctrl', true)} onClick={() => onKeyPress?.('ctrl')}>
           ctrl
         </button>
       </div>

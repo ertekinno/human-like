@@ -1,4 +1,4 @@
-/* Mobile Keyboard Styles */
+/* Mobile Keyboard Styles - Simplified Desktop-like Approach */
 .human-like-mobile-keyboard {
   --keyboard-bg: #f2f2f7;
   --keyboard-bg-dark: #1c1c1e;
@@ -37,31 +37,6 @@
   box-shadow: var(--keyboard-shadow-dark);
 }
 
-.human-like-mobile-keyboard__title {
-  text-align: center;
-  margin-bottom: 15px;
-  color: var(--key-text);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__title {
-  color: var(--key-text-dark);
-}
-
-.human-like-mobile-keyboard__view-indicator {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background-color: var(--key-bg-active);
-  color: var(--key-text-active);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__view-indicator {
-  background-color: var(--key-bg-active-dark);
-}
 
 .human-like-mobile-keyboard__row {
   display: flex;
@@ -113,6 +88,15 @@
 .human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--active {
   background-color: var(--key-bg-active-dark);
   box-shadow: var(--key-shadow-active-dark);
+}
+
+.human-like-mobile-keyboard__key--shift-on {
+  background-color: var(--key-bg-active);
+  color: var(--key-text-active);
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--shift-on {
+  background-color: var(--key-bg-active-dark);
 }
 
 .human-like-mobile-keyboard__key--shift-locked {

@@ -16,8 +16,6 @@ export interface MobileKeyboardProps {
   onKeyPress?: (key: string) => void;
   
   // New props for enhanced functionality
-  showTitle?: boolean;
-  title?: string;
   unstyled?: boolean;
   className?: string;
   classes?: KeyboardClasses;
@@ -42,8 +40,6 @@ export const MobileKeyboard = forwardRef<MobileKeyboardRef, MobileKeyboardProps>
   highlightedKey,
   keyboardMode = 'light',
   onKeyPress,
-  showTitle = true,
-  title = 'Mobile Keyboard',
   unstyled = false,
   className = '',
   classes = {},
@@ -129,13 +125,13 @@ export const MobileKeyboard = forwardRef<MobileKeyboardRef, MobileKeyboardProps>
     ['ABC', 'space', 'return']
   ];
 
-  // Handle shift/caps logic for unified ⇧ key
+  // Handle shift/caps logic for unified ⇧ key (iOS-style behavior)
   const handleShiftKey = () => {
     const currentTime = Date.now();
     const timeSinceLastTap = currentTime - lastTapTime;
     
     if (timeSinceLastTap < 300) {
-      // Double tap - toggle caps lock
+      // Double tap - toggle caps lock (iOS behavior)
       const newState = internalShiftState === ShiftState.Locked ? ShiftState.Off : ShiftState.Locked;
       const previousState = internalShiftState;
       setInternalShiftState(newState);
@@ -145,9 +141,24 @@ export const MobileKeyboard = forwardRef<MobileKeyboardRef, MobileKeyboardProps>
         timestamp: currentTime 
       });
     } else {
-      // Single tap - toggle shift
-      const newState = internalShiftState === ShiftState.Off ? ShiftState.On : ShiftState.Off;
+      // Single tap - cycle through states (iOS behavior)
+      let newState;
       const previousState = internalShiftState;
+      
+      switch (internalShiftState) {
+        case ShiftState.Off:
+          newState = ShiftState.On;
+          break;
+        case ShiftState.On:
+          newState = ShiftState.Off;
+          break;
+        case ShiftState.Locked:
+          newState = ShiftState.Off;
+          break;
+        default:
+          newState = ShiftState.On;
+      }
+      
       setInternalShiftState(newState);
       onShiftStateChange?.({ 
         previousState, 
@@ -210,6 +221,16 @@ export const MobileKeyboard = forwardRef<MobileKeyboardRef, MobileKeyboardProps>
     } else if (key === '#+=') {
       handleViewChange(KeyboardView.Symbols);
     } else {
+      // iOS-style: Turn off shift after typing a letter (but not caps lock)
+      if (internalShiftState === ShiftState.On && key.length === 1 && /[a-z]/i.test(key)) {
+        const previousState = internalShiftState;
+        setInternalShiftState(ShiftState.Off);
+        onShiftStateChange?.({ 
+          previousState, 
+          currentState: ShiftState.Off, 
+          timestamp: Date.now() 
+        });
+      }
       onKeyPress?.(key);
     }
   };
@@ -227,19 +248,16 @@ export const MobileKeyboard = forwardRef<MobileKeyboardRef, MobileKeyboardProps>
     
     // Special handling for specific keys
     if (key === 'space') return 'space';
-    if (key === 'return') return '↵';
+    if (key === 'return') return 'return';
     if (key === '⇧') {
-      // Visual state for shift key
-      if (internalShiftState === ShiftState.Locked) return '⇧'; // Could be styled differently
-      if (internalShiftState === ShiftState.On) return '⇧';
+      // iOS-style visual states for shift key
       return '⇧';
     }
     
     return key;
   };
 
-  const getKeyStyle = (key: string) => {
-    // Better key matching - handle various key representations
+  const getKeyClasses = (key: string) => {
     const normalizeKey = (k: string) => {
       if (k === '⇧') return '⇧';
       if (k === 'backspace' || k === '⌫') return '⌫';
@@ -255,19 +273,36 @@ export const MobileKeyboard = forwardRef<MobileKeyboardRef, MobileKeyboardProps>
                     normalizeKey(highlightedKey || '') === normalizeKey(key);
     const isModifier = ['⇧', 'ABC', '123', '#+=', 'space', '⌫', 'return'].includes(key);
     const isShiftKey = key === '⇧';
-    const isShiftActive = isShiftKey && (internalShiftState === ShiftState.On || internalShiftState === ShiftState.Locked);
     const isShiftLocked = isShiftKey && internalShiftState === ShiftState.Locked;
     
-    // Calculate key width based on key type and position
-    let keyWidth = '35px';
-    if (key === 'space') keyWidth = '180px';
-    else if (key === '⇧') keyWidth = '55px';
-    else if (key === '⌫') keyWidth = '55px';
-    else if (key === 'return') keyWidth = '80px';
-    else if (['ABC', '123', '#+='].includes(key)) keyWidth = '50px';
+    let keyClasses = 'human-like-mobile-keyboard__key';
     
+    // Add size-specific classes
+    if (key === 'space') keyClasses += ' human-like-mobile-keyboard__key--space';
+    else if (key === '⇧') keyClasses += ' human-like-mobile-keyboard__key--shift';
+    else if (key === '⌫') keyClasses += ' human-like-mobile-keyboard__key--backspace';
+    else if (key === 'return') keyClasses += ' human-like-mobile-keyboard__key--return';
+    else if (['ABC', '123', '#+='].includes(key)) keyClasses += ' human-like-mobile-keyboard__key--view-switch';
+    else keyClasses += ' human-like-mobile-keyboard__key--regular';
+    
+    // Add state classes
+    if (isActive) keyClasses += ' human-like-mobile-keyboard__key--active';
+    if (isShiftKey) {
+      if (isShiftLocked) keyClasses += ' human-like-mobile-keyboard__key--shift-locked';
+      else if (internalShiftState === ShiftState.On) keyClasses += ' human-like-mobile-keyboard__key--shift-on';
+    }
+    if (isModifier) keyClasses += ' human-like-mobile-keyboard__key--modifier';
+    
+    return keyClasses;
+  };
+
+  const getKeyStyle = (key: string) => {
     // Return minimal styling if unstyled mode
     if (unstyled) {
+      const keyWidth = key === 'space' ? '180px' : 
+                     key === '⇧' || key === '⌫' ? '55px' : 
+                     key === 'return' ? '80px' : 
+                     ['ABC', '123', '#+='].includes(key) ? '50px' : '35px';
       return {
         minWidth: keyWidth,
         height: '42px',
@@ -279,144 +314,36 @@ export const MobileKeyboard = forwardRef<MobileKeyboardRef, MobileKeyboardProps>
         justifyContent: 'center'
       };
     }
-
-    const baseStyle = {
-      minWidth: keyWidth,
-      height: '42px',
-      margin: '1px',
-      border: 'none',
-      borderRadius: '6px',
-      fontSize: key === 'space' ? '11px' : key === 'return' ? '11px' : isModifier ? '11px' : '16px',
-      fontWeight: '500',
-      cursor: 'pointer',
-      transition: 'all 0.1s ease',
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-    };
-
-    if (keyboardMode === 'dark') {
-      return {
-        ...baseStyle,
-        backgroundColor: isActive || isShiftActive ? '#0066cc' : 
-                        isShiftLocked ? '#ff6b35' : 
-                        isModifier ? '#4a4a4a' : '#2a2a2a',
-        color: '#ffffff',
-        boxShadow: isActive || isShiftActive ? '0 0 10px rgba(0, 102, 204, 0.5)' : '0 1px 3px rgba(0,0,0,0.3)',
-        transform: isActive ? 'scale(0.95)' : 'scale(1)'
-      };
-    } else {
-      return {
-        ...baseStyle,
-        backgroundColor: isActive || isShiftActive ? '#007AFF' : 
-                        isShiftLocked ? '#ff3b30' : 
-                        isModifier ? '#d1d1d6' : '#ffffff',
-        color: isActive || isShiftActive || isShiftLocked ? '#ffffff' : '#000000',
-        boxShadow: isActive || isShiftActive ? '0 0 10px rgba(0, 122, 255, 0.3)' : '0 1px 3px rgba(0,0,0,0.1)',
-        transform: isActive ? 'scale(0.95)' : 'scale(1)',
-        border: '1px solid #d1d1d6'
-      };
-    }
+    
+    return {}; // Let CSS classes handle the styling
   };
 
   const getContainerClassName = () => {
-    let classNames = '';
+    let classNames = 'human-like-mobile-keyboard';
     if (classes.root) classNames += ` ${classes.root}`;
     if (className) classNames += ` ${className}`;
     return classNames.trim();
   };
 
-  const getKeyClassName = (isActive: boolean, isModifier: boolean) => {
-    let classNames = '';
-    if (classes.key) classNames += ` ${classes.key}`;
-    if (isActive && classes.keyActive) classNames += ` ${classes.keyActive}`;
-    if (isModifier && classes.keyModifier) classNames += ` ${classes.keyModifier}`;
-    return classNames.trim();
-  };
 
-  const containerStyle = unstyled ? {} : {
-    padding: '20px',
-    backgroundColor: keyboardMode === 'dark' ? '#1c1c1e' : '#f2f2f7',
-    borderRadius: '12px',
-    boxShadow: keyboardMode === 'dark' 
-      ? '0 8px 32px rgba(0,0,0,0.6)' 
-      : '0 8px 32px rgba(0,0,0,0.1)',
-    maxWidth: '420px',
-    margin: '0 auto',
-    ...style
-  };
-
-  const rowStyle = unstyled ? {} : {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '3px',
-    gap: '1px'
-  };
-
-  const headerStyle = unstyled ? {} : {
-    textAlign: 'center' as const,
-    marginBottom: '15px',
-    color: keyboardMode === 'dark' ? '#ffffff' : '#000000',
-    fontSize: '14px',
-    fontWeight: '600',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-  };
-
-  const viewIndicatorStyle = unstyled ? {} : {
-    display: 'inline-block',
-    padding: '4px 8px',
-    borderRadius: '4px',
-    backgroundColor: keyboardMode === 'dark' ? '#0066cc' : '#007AFF',
-    color: '#ffffff',
-    fontSize: '12px',
-    fontWeight: '500'
-  };
+  const containerStyle = unstyled ? style : style;
 
   return (
     <div 
       className={getContainerClassName()} 
       style={containerStyle}
+      data-theme={keyboardMode}
     >
-      {showTitle && (
-        <div 
-          className={classes.title} 
-          style={headerStyle}
-        >
-          {title} - <span 
-            className={classes.viewIndicator} 
-            style={viewIndicatorStyle}
-          >
-            {internalView.toUpperCase()}
-          </span>
-        </div>
-      )}
       {getCurrentLayout().map((row, rowIndex) => (
         <div 
           key={rowIndex} 
-          className={classes.row} 
-          style={rowStyle}
+          className={`human-like-mobile-keyboard__row ${classes.row || ''}`}
         >
           {row.map((key) => {
-            const normalizeKey = (k: string) => {
-              if (k === '⇧') return '⇧';
-              if (k === 'backspace' || k === '⌫') return '⌫';
-              if (k === 'space') return 'space';
-              if (k === 'ABC') return 'ABC';
-              if (k === '123') return '123';
-              if (k === '#+=') return '#+=';
-              if (k === 'return' || k === 'enter') return 'return';
-              return k.toLowerCase();
-            };
-            
-            const isActive = normalizeKey(activeKey) === normalizeKey(key) || 
-                            normalizeKey(highlightedKey || '') === normalizeKey(key);
-            const isModifier = ['⇧', 'ABC', '123', '#+=', 'space', '⌫', 'return'].includes(key);
-            
             return (
               <button
                 key={key}
-                className={getKeyClassName(isActive, isModifier)}
+                className={getKeyClasses(key)}
                 style={getKeyStyle(key)}
                 onClick={() => handleKeyPress(key)}
               >

@@ -4,6 +4,11 @@ import { useHumanLike } from './index';
 import { KeyboardSimulationDemo } from './components/KeyboardSimulationDemo';
 import type { HumanLikeConfig } from './types';
 
+// Import CSS styles for keyboard components
+import './styles/MobileKeyboardStyle.css';
+import './styles/DesktopKeyboardStyle.css';
+import './styles/KeyboardStyle.css';
+
 // Configurable Demo Component
 const ConfigurableDemo: React.FC = () => {
   const [customText, setCustomText] = useState("Experience the magic of Human-Like typewriter effect! This sophisticated library simulates realistic human typing behavior with intelligent mistakes, natural timing patterns, and advanced correction mechanics. Adjust the settings below to customize the typing experience and see how different configurations affect the realism of the animation.");

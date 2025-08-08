@@ -32,6 +32,7 @@ export const KeyboardSimulationDemo: React.FC = () => {
     overcorrection: true
   });
 
+
   const handleKeyPress = useCallback((event: any, id?: string) => {
     // Handle both old KeyInfo and new KeyPressEvent formats
     const key = event.key;

@@ -176,8 +176,6 @@ export interface KeyboardClasses {
   key?: string;
   keyActive?: string;
   keyModifier?: string;
-  title?: string;
-  viewIndicator?: string;
 }
 
 // Label and icon override types

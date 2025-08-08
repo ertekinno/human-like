@@ -98,7 +98,7 @@ export const ANDROID_LAYOUT: KeyboardLayoutDefinition = {
     shift: '⇧',
     caps: 'CAPS',
     space: 'space',
-    enter: '↵',
+    enter: 'return',
     backspace: '⌫'
   }
 };
