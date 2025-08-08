@@ -414,13 +414,21 @@ describe('useHumanLike Hook', () => {
         vi.advanceTimersByTime(100);
       });
       
-      expect(onStateChange).toHaveBeenCalledWith('typing');
+      expect(onStateChange).toHaveBeenCalledWith(expect.objectContaining({
+        previousState: 'idle',
+        currentState: 'typing',
+        timestamp: expect.any(Number)
+      }));
       
       act(() => {
         result.current.pause();
       });
       
-      expect(onStateChange).toHaveBeenCalledWith('paused');
+      expect(onStateChange).toHaveBeenCalledWith(expect.objectContaining({
+        previousState: 'typing',
+        currentState: 'paused',
+        timestamp: expect.any(Number)
+      }));
     });
   });
 

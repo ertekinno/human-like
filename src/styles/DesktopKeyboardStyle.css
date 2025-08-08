@@ -1,0 +1,209 @@
+/* Desktop Keyboard Styles */
+.human-like-desktop-keyboard {
+  --desktop-keyboard-bg: #ffffff;
+  --desktop-keyboard-bg-dark: #2c2c2c;
+  --desktop-key-bg: #f8f8f8;
+  --desktop-key-bg-dark: #404040;
+  --desktop-key-bg-hover: #e6e6e6;
+  --desktop-key-bg-hover-dark: #505050;
+  --desktop-key-bg-active: #0078d4;
+  --desktop-key-bg-pressed: #d0d0d0;
+  --desktop-key-bg-pressed-dark: #606060;
+  --desktop-key-text: #000000;
+  --desktop-key-text-dark: #ffffff;
+  --desktop-key-text-active: #ffffff;
+  --desktop-key-border: #cccccc;
+  --desktop-key-border-dark: #555555;
+  --desktop-key-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  --desktop-key-shadow-dark: 0 2px 4px rgba(0,0,0,0.3);
+  --desktop-key-shadow-pressed: inset 0 2px 4px rgba(0,0,0,0.2);
+  --desktop-keyboard-radius: 8px;
+  --desktop-key-radius: 4px;
+  
+  background-color: var(--desktop-keyboard-bg);
+  border-radius: var(--desktop-keyboard-radius);
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+}
+
+.human-like-desktop-keyboard[data-theme="dark"] {
+  background-color: var(--desktop-keyboard-bg-dark);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.human-like-desktop-keyboard__row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.human-like-desktop-keyboard__key {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--desktop-key-border);
+  border-radius: var(--desktop-key-radius);
+  background-color: var(--desktop-key-bg);
+  color: var(--desktop-key-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--desktop-key-shadow);
+  white-space: nowrap;
+}
+
+.human-like-desktop-keyboard[data-theme="dark"] .human-like-desktop-keyboard__key {
+  background-color: var(--desktop-key-bg-dark);
+  color: var(--desktop-key-text-dark);
+  border-color: var(--desktop-key-border-dark);
+  box-shadow: var(--desktop-key-shadow-dark);
+}
+
+.human-like-desktop-keyboard__key:hover {
+  background-color: var(--desktop-key-bg-hover);
+  transform: translateY(-1px);
+}
+
+.human-like-desktop-keyboard[data-theme="dark"] .human-like-desktop-keyboard__key:hover {
+  background-color: var(--desktop-key-bg-hover-dark);
+}
+
+.human-like-desktop-keyboard__key--active {
+  background-color: var(--desktop-key-bg-active);
+  color: var(--desktop-key-text-active);
+  transform: translateY(1px);
+  box-shadow: var(--desktop-key-shadow-pressed);
+}
+
+.human-like-desktop-keyboard__key--pressed {
+  background-color: var(--desktop-key-bg-pressed);
+  transform: translateY(1px);
+  box-shadow: var(--desktop-key-shadow-pressed);
+}
+
+.human-like-desktop-keyboard[data-theme="dark"] .human-like-desktop-keyboard__key--pressed {
+  background-color: var(--desktop-key-bg-pressed-dark);
+}
+
+/* Key size variations for desktop */
+.human-like-desktop-keyboard__key--tab {
+  min-width: 60px;
+}
+
+.human-like-desktop-keyboard__key--caps-lock {
+  min-width: 70px;
+}
+
+.human-like-desktop-keyboard__key--shift {
+  min-width: 80px;
+}
+
+.human-like-desktop-keyboard__key--shift-right {
+  min-width: 105px;
+}
+
+.human-like-desktop-keyboard__key--enter {
+  min-width: 95px;
+}
+
+.human-like-desktop-keyboard__key--backspace {
+  min-width: 80px;
+}
+
+.human-like-desktop-keyboard__key--space {
+  min-width: 240px;
+}
+
+.human-like-desktop-keyboard__key--ctrl,
+.human-like-desktop-keyboard__key--alt,
+.human-like-desktop-keyboard__key--cmd {
+  min-width: 50px;
+  font-size: 12px;
+}
+
+/* Function keys */
+.human-like-desktop-keyboard__key--function {
+  min-width: 45px;
+  font-size: 11px;
+  background-color: var(--desktop-key-bg-hover);
+}
+
+.human-like-desktop-keyboard[data-theme="dark"] .human-like-desktop-keyboard__key--function {
+  background-color: var(--desktop-key-bg-hover-dark);
+}
+
+/* Number row */
+.human-like-desktop-keyboard__key--number {
+  min-width: 45px;
+}
+
+/* Arrow keys */
+.human-like-desktop-keyboard__key--arrow {
+  min-width: 40px;
+  font-size: 12px;
+}
+
+/* Desktop-specific responsive adjustments */
+@media (max-width: 1200px) {
+  .human-like-desktop-keyboard {
+    padding: 12px;
+  }
+  
+  .human-like-desktop-keyboard__key {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .human-like-desktop-keyboard__key--space {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 900px) {
+  .human-like-desktop-keyboard {
+    padding: 8px;
+  }
+  
+  .human-like-desktop-keyboard__row {
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+  
+  .human-like-desktop-keyboard__key {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .human-like-desktop-keyboard__key--space {
+    min-width: 160px;
+  }
+  
+  .human-like-desktop-keyboard__key--shift {
+    min-width: 60px;
+  }
+  
+  .human-like-desktop-keyboard__key--enter {
+    min-width: 70px;
+  }
+}
+
+/* High contrast mode for desktop */
+@media (prefers-contrast: high) {
+  .human-like-desktop-keyboard {
+    --desktop-key-border: #000000;
+    --desktop-keyboard-bg: #ffffff;
+    --desktop-keyboard-bg-dark: #000000;
+    --desktop-key-bg: #ffffff;
+    --desktop-key-bg-dark: #000000;
+    --desktop-key-text: #000000;
+    --desktop-key-text-dark: #ffffff;
+  }
+}

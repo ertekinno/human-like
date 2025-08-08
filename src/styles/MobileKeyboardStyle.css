@@ -1,0 +1,150 @@
+/* Mobile Keyboard Styles */
+.human-like-mobile-keyboard {
+  --keyboard-bg: #f2f2f7;
+  --keyboard-bg-dark: #1c1c1e;
+  --key-bg: #ffffff;
+  --key-bg-dark: #2a2a2a;
+  --key-bg-modifier: #d1d1d6;
+  --key-bg-modifier-dark: #4a4a4a;
+  --key-bg-active: #007AFF;
+  --key-bg-active-dark: #0066cc;
+  --key-bg-shift-locked: #ff3b30;
+  --key-bg-shift-locked-dark: #ff6b35;
+  --key-text: #000000;
+  --key-text-dark: #ffffff;
+  --key-text-active: #ffffff;
+  --key-border: #d1d1d6;
+  --key-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  --key-shadow-dark: 0 1px 3px rgba(0,0,0,0.3);
+  --key-shadow-active: 0 0 10px rgba(0, 122, 255, 0.3);
+  --key-shadow-active-dark: 0 0 10px rgba(0, 102, 204, 0.5);
+  --keyboard-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  --keyboard-shadow-dark: 0 8px 32px rgba(0,0,0,0.6);
+  --keyboard-radius: 12px;
+  --key-radius: 6px;
+  
+  padding: 20px;
+  background-color: var(--keyboard-bg);
+  border-radius: var(--keyboard-radius);
+  box-shadow: var(--keyboard-shadow);
+  max-width: 420px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] {
+  background-color: var(--keyboard-bg-dark);
+  box-shadow: var(--keyboard-shadow-dark);
+}
+
+.human-like-mobile-keyboard__title {
+  text-align: center;
+  margin-bottom: 15px;
+  color: var(--key-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__title {
+  color: var(--key-text-dark);
+}
+
+.human-like-mobile-keyboard__view-indicator {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: var(--key-bg-active);
+  color: var(--key-text-active);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__view-indicator {
+  background-color: var(--key-bg-active-dark);
+}
+
+.human-like-mobile-keyboard__row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3px;
+  gap: 1px;
+}
+
+.human-like-mobile-keyboard__key {
+  height: 42px;
+  margin: 1px;
+  border: 1px solid var(--key-border);
+  border-radius: var(--key-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--key-bg);
+  color: var(--key-text);
+  box-shadow: var(--key-shadow);
+  font-size: 16px;
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key {
+  background-color: var(--key-bg-dark);
+  color: var(--key-text-dark);
+  box-shadow: var(--key-shadow-dark);
+  border: none;
+}
+
+.human-like-mobile-keyboard__key--modifier {
+  background-color: var(--key-bg-modifier);
+  font-size: 11px;
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--modifier {
+  background-color: var(--key-bg-modifier-dark);
+}
+
+.human-like-mobile-keyboard__key--active {
+  background-color: var(--key-bg-active);
+  color: var(--key-text-active);
+  box-shadow: var(--key-shadow-active);
+  transform: scale(0.95);
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--active {
+  background-color: var(--key-bg-active-dark);
+  box-shadow: var(--key-shadow-active-dark);
+}
+
+.human-like-mobile-keyboard__key--shift-locked {
+  background-color: var(--key-bg-shift-locked);
+  color: var(--key-text-active);
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--shift-locked {
+  background-color: var(--key-bg-shift-locked-dark);
+}
+
+/* Key size variations */
+.human-like-mobile-keyboard__key--space {
+  min-width: 180px;
+  font-size: 11px;
+}
+
+.human-like-mobile-keyboard__key--shift,
+.human-like-mobile-keyboard__key--backspace {
+  min-width: 55px;
+}
+
+.human-like-mobile-keyboard__key--return {
+  min-width: 80px;
+  font-size: 11px;
+}
+
+.human-like-mobile-keyboard__key--view-switch {
+  min-width: 50px;
+  font-size: 11px;
+}
+
+.human-like-mobile-keyboard__key--regular {
+  min-width: 35px;
+}

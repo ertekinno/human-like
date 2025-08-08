@@ -1,6 +1,10 @@
-# Human-Like
+# 🚀 Human-Like
 
-A revolutionary React typewriter effect library that simulates **authentic keyboard interaction** with realistic key sequences, platform-specific typing behavior, and intelligent mistake patterns. Experience typing that feels genuinely human.
+A sophisticated React typewriter effect library that simulates realistic human typing behavior with interactive mobile/desktop keyboards and comprehensive theming support.
+
+[![npm version](https://badge.fury.io/js/@ertekinno%2Fhuman-like.svg)](https://badge.fury.io/js/@ertekinno%2Fhuman-like)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 *Built with [Claude Code](https://claude.ai/code) - AI-powered development assistant*
 
@@ -24,9 +28,20 @@ Unlike traditional typewriter libraries that simulate artificial character delay
 - 🎯 **Smart Adjacent Mistakes** - Touch-optimized errors on mobile, QWERTY mistakes on desktop
 - 🔑 **Natural Key Sequences** - CAPS LOCK mode, view switching, modifier keys
 - 🧠 **Intelligent Timing** - Speed multipliers applied to realistic base timing
-- 🎮 **Live Key Visualization** - Real-time keyboard highlighting (see demo)
+- 🎮 **Live Key Visualization** - Real-time keyboard highlighting with interactive keyboards
 - ⚡ **Zero Configuration** - Works perfectly out of the box
 - 📊 **Complete Control** - Fine-tune every aspect of typing behavior
+
+## 🆕 **New in v2.1.0**
+
+- 🎨 **Advanced Theming** - Unstyled mode, CSS variables, class overrides
+- 📱 **Enhanced Mobile Keyboard** - Unified shift/caps behavior, uppercase rendering  
+- 🎛️ **Imperative Controls** - Ref support with resetKeyboard, setView, setShift methods
+- 🔧 **Stable Hook APIs** - useCallback optimization prevents unnecessary re-renders
+- 📋 **Custom Labels & Icons** - labelOverrides and iconOverrides for full customization
+- 🎪 **Structured Events** - Enhanced event system with timestamps and state tracking
+- 📚 **Complete TypeScript** - Exported enums, interfaces, and comprehensive types
+- 🎯 **Separate Styling** - Mobile and desktop keyboards with independent CSS files
 
 ## 📦 Installation
 
@@ -38,19 +53,59 @@ yarn add @ertekinno/human-like
 
 ## 🚀 Quick Start
 
+### Basic Typewriter Effect
 ```jsx
 import React from 'react';
-import { HumanLike } from '@ertekinno/human-like';
+import { useHumanLike } from '@ertekinno/human-like';
 
 function App() {
+  const { displayText, start } = useHumanLike({
+    text: "Hello, world! This types like a real human...",
+    config: { speed: 80, mistakeFrequency: 0.02 }
+  });
+
   return (
-    <HumanLike
-      text="Hello, world! This is REAL keyboard simulation."
-      speed={80}
-      keyboardMode="mobile" // or "desktop"
-      onKey={(keyInfo) => console.log('Key pressed:', keyInfo.key)}
-      onComplete={() => console.log('Typing complete!')}
-    />
+    <div>
+      <p>{displayText}</p>
+      <button onClick={start}>Start Typing</button>
+    </div>
+  );
+}
+```
+
+### With Interactive Keyboard (New!)
+```jsx
+import { useHumanLike, MobileKeyboard, KeyboardView, ShiftState } from '@ertekinno/human-like';
+import '@ertekinno/human-like/src/styles/MobileKeyboardStyle.css';
+
+function TypewriterWithKeyboard() {
+  const [currentView, setCurrentView] = useState(KeyboardView.Letters);
+  const [shiftState, setShiftState] = useState(ShiftState.Off);
+
+  const { displayText, start, isTyping } = useHumanLike({
+    text: "Watch the keyboard light up as I type!",
+    keyboardMode: 'mobile',
+    onKey: (event) => console.log(`Key: ${event.key}`)
+  });
+
+  return (
+    <div>
+      <div className="typing-display">{displayText}</div>
+      
+      <MobileKeyboard
+        currentView={currentView}
+        shiftState={shiftState}
+        onViewChange={(event) => setCurrentView(event.currentView)}
+        onShiftStateChange={(event) => setShiftState(event.currentState)}
+        showTitle={true}
+        title="Interactive Demo"
+        labelOverrides={{ return: 'Send' }}
+      />
+      
+      <button onClick={start} disabled={isTyping}>
+        {isTyping ? 'Typing...' : 'Start Demo'}
+      </button>
+    </div>
   );
 }
 ```
@@ -531,14 +586,16 @@ npm run typecheck # TypeScript validation
 - **Compatibility**: React 16.8+ (hooks), React 19 fully supported
 - **Platforms**: Mobile browsers, desktop browsers, React Native compatible
 
-## 🌟 **What's New in v1.4.0**
+## 🌟 **What's New in v2.1.0**
 
-- ✅ **Unified Architecture** - Single keyboard simulation system (no more dual modes)
-- ✅ **Mobile vs Desktop** - Platform-specific adjacent key mistakes  
-- ✅ **Real Key Sequences** - CAPS LOCK, view switching, modifier keys
-- ✅ **Live Visualization** - Interactive keyboard demos with key highlighting
-- ✅ **Speed Range Expansion** - 20ms-500ms (Hunt & Peck to Professional)
-- ✅ **Enhanced Realism** - Touch typing vs physical keyboard behavior
+- ✅ **Advanced Theming System** - Unstyled mode, CSS variables, class overrides  
+- ✅ **Enhanced Mobile Keyboard** - Unified shift/caps with tap/double-tap/hold
+- ✅ **Imperative Controls** - Ref support with resetKeyboard(), setView(), setShift()
+- ✅ **Stable Hook APIs** - useCallback optimization prevents render loops
+- ✅ **Custom Labels & Icons** - labelOverrides and iconOverrides support
+- ✅ **Structured Events** - Enhanced event system with timestamps and state tracking
+- ✅ **Complete TypeScript** - Exported enums, interfaces, comprehensive types  
+- ✅ **Separate CSS Files** - Mobile/desktop keyboards with independent styling
 - ✅ **Zero Breaking Changes** - Fully backward compatible API
 
 ## 💡 **Why Choose Human-Like?**

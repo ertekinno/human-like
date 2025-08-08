@@ -17,8 +17,22 @@ export type {
   TypingEvent,
   KeyInfo,
   KeySequence,
-  KeyboardMode
+  KeyboardMode,
+  KeyPressEvent,
+  StateChangeEvent,
+  ViewChangeEvent,
+  ShiftChangeEvent,
+  ErrorEvent,
+  KeyboardClasses,
+  LabelOverrides,
+  IconOverrides
 } from './types';
+
+// Export enums
+export { ShiftState, KeyboardView } from './types';
+
+// Export component interfaces  
+export type { MobileKeyboardProps, MobileKeyboardRef } from './components/MobileKeyboard';
 export { 
   TIMING_CONSTANTS, 
   BEHAVIOR_RATES, 

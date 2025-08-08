@@ -1,5 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { HumanLikeConfig, HumanLikeHookReturn, TypingState, MistakeInfo, KeyInfo } from '../types';
+import type { 
+  HumanLikeConfig, 
+  HumanLikeHookReturn, 
+  TypingState, 
+  MistakeInfo, 
+  KeyInfo,
+  StateChangeEvent,
+  KeyPressEvent
+} from '../types';
+import { KeyboardView } from '../types';
 import { TypingEngine } from '../utils/TypingEngine';
 
 interface UseHumanLikeOptions {
@@ -10,6 +19,7 @@ interface UseHumanLikeOptions {
   cursorChar?: string;
   cursorBlinkSpeed?: number;
   id?: string;
+  // Enhanced event system
   onStart?: (id?: string) => void;
   onComplete?: (id?: string) => void;
   onChar?: (char: string, index: number, id?: string) => void;
@@ -17,10 +27,11 @@ interface UseHumanLikeOptions {
   onBackspace?: (id?: string) => void;
   onPause?: () => void;
   onResume?: () => void;
-  onStateChange?: (state: TypingState) => void;
+  onStateChange?: (event: StateChangeEvent) => void;
+  onKeyboardReset?: () => void;
   // Keyboard simulation options
   keyboardMode?: 'mobile' | 'desktop';
-  onKey?: (keyInfo: KeyInfo, id?: string) => void;
+  onKey?: (event: KeyPressEvent, id?: string) => void;
 }
 
 export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn {
@@ -39,6 +50,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     onPause,
     onResume,
     onStateChange,
+    onKeyboardReset,
     keyboardMode,
     onKey
   } = options;
@@ -58,6 +70,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
   const engineRef = useRef<TypingEngine | null>(null);
   const cursorIntervalRef = useRef<number | null>(null);
   const isInitializedRef = useRef(false);
+  const previousStateRef = useRef<TypingState>('idle');
 
   // Sync prop changes with internal state
   useEffect(() => {
@@ -94,7 +107,18 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     const enhancedConfig = {
       ...config,
       ...(keyboardMode && { keyboardMode }),
-      ...(onKey && { onKey: (keyInfo: KeyInfo) => onKey(keyInfo, id) })
+      ...(onKey && { onKey: (keyInfo: KeyInfo) => {
+        const keyPressEvent: KeyPressEvent = {
+          id: keyInfo.key,
+          key: keyInfo.key,
+          view: (keyInfo.keyboardView === 'letters' ? KeyboardView.Letters :
+                 keyInfo.keyboardView === 'numbers' ? KeyboardView.Numbers :
+                 keyInfo.keyboardView === 'symbols' ? KeyboardView.Symbols :
+                 KeyboardView.Letters), // default fallback
+          timestamp: Date.now()
+        };
+        onKey(keyPressEvent, id);
+      }})
     };
     
     const typingEngine = new TypingEngine(text, enhancedConfig);
@@ -104,7 +128,9 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     syncStateWithEngine(typingEngine);
     
     // Set up event listeners with optimized rendering
-    typingEngine.onStateChangeListener((state) => {
+    typingEngine.onStateChangeListener((state: TypingState) => {
+      const previousState = previousStateRef.current;
+      
       // Sync all state at once to avoid race conditions
       setCurrentState(state);
       setDisplayText(typingEngine.getDisplayText());
@@ -113,7 +139,14 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       setMistakeCount(typingEngine.getMistakes().length);
       setTotalDuration(typingEngine.getTotalDuration());
       
-      onStateChange?.(state);
+      onStateChange?.({
+        previousState,
+        currentState: state,
+        timestamp: Date.now()
+      });
+      
+      // Update previous state ref
+      previousStateRef.current = state;
       
       // Handle state-specific logic
       if (state === 'typing' && !isInitializedRef.current) {
@@ -157,7 +190,17 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     // Set up keyboard simulation listener if provided
     if (onKey) {
       typingEngine.onKeyListener((keyInfo) => {
-        onKey(keyInfo, id);
+        // Convert KeyInfo to KeyPressEvent
+        const keyPressEvent: KeyPressEvent = {
+          id: keyInfo.key,
+          key: keyInfo.key,
+          view: (keyInfo.keyboardView === 'letters' ? KeyboardView.Letters :
+                 keyInfo.keyboardView === 'numbers' ? KeyboardView.Numbers :
+                 keyInfo.keyboardView === 'symbols' ? KeyboardView.Symbols :
+                 KeyboardView.Letters), // default fallback
+          timestamp: Date.now()
+        };
+        onKey(keyPressEvent, id);
       });
     }
 
@@ -289,6 +332,20 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     rewind();
   }, [rewind]);
 
+  const resetKeyboard = useCallback(() => {
+    // Reset keyboard-specific state and emit event
+    if (engineRef.current) {
+      engineRef.current.reset();
+      setDisplayText(engineRef.current.getDisplayText());
+      setProgress(engineRef.current.getProgress());
+      setMistakeCount(engineRef.current.getMistakes().length);
+      setCurrentWPM(engineRef.current.getStats().currentWPM);
+      setTotalDuration(engineRef.current.getTotalDuration());
+      isInitializedRef.current = false;
+    }
+    onKeyboardReset?.();
+  }, [onKeyboardReset]);
+
   // Cursor control methods
   const setCursorVisible = useCallback((visible: boolean) => {
     setShowCursor(visible);
@@ -337,6 +394,7 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     skip,
     rewind,
     reset,
+    resetKeyboard,
     setCursorVisible,
     setCursorChar,
     setCursorBlinkSpeed

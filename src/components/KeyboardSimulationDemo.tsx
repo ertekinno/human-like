@@ -3,13 +3,14 @@ import { useHumanLike } from '../hooks/useHumanLike';
 import { MobileKeyboard } from './MobileKeyboard';
 import { DesktopKeyboard } from './DesktopKeyboard';
 import { useKeyPressIndicator } from './KeyPressIndicator';
-import type { HumanLikeConfig, KeyInfo } from '../types';
+import { KeyboardView } from '../types';
+import type { HumanLikeConfig } from '../types';
 
 export const KeyboardSimulationDemo: React.FC = () => {
   const [customText, setCustomText] = useState("HELLO World! Check out these amazing symbols: @#$%^&*() and numbers 12345. This demonstrates natural keyboard timing with view switching on mobile keyboards! 🚀");
   const [currentText, setCurrentText] = useState(customText);
   const [keyboardMode, setKeyboardMode] = useState<'mobile' | 'desktop'>('mobile');
-  const [currentView, setCurrentView] = useState<'letters' | 'numbers' | 'symbols'>('letters');
+  const [currentView, setCurrentView] = useState<KeyboardView>(KeyboardView.Letters);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [highlightedKey, setHighlightedKey] = useState<string>('');
   
@@ -31,24 +32,40 @@ export const KeyboardSimulationDemo: React.FC = () => {
     overcorrection: true
   });
 
-  const handleKeyPress = useCallback((keyInfo: KeyInfo) => {
-    console.log(`🔑 Key: ${keyInfo.key}, Type: ${keyInfo.type}, Duration: ${keyInfo.duration}ms, View: ${keyInfo.keyboardView}`);
+  const handleKeyPress = useCallback((event: any, id?: string) => {
+    // Handle both old KeyInfo and new KeyPressEvent formats
+    const key = event.key;
+    const view = event.view || event.keyboardView || 'letters';
+    const duration = event.duration || 200;
+    
+    console.log(`🔑 Key: ${key}, View: ${view}, ID: ${id}`);
     
     // Highlight the key being pressed
-    setHighlightedKey(keyInfo.key);
+    setHighlightedKey(key);
     
     // Clear highlight after duration
     setTimeout(() => {
       setHighlightedKey('');
-    }, keyInfo.duration);
+    }, duration);
     
     // Update keyboard view based on key press (only for valid views)
-    if (keyInfo.keyboardView === 'letters' || keyInfo.keyboardView === 'numbers' || keyInfo.keyboardView === 'symbols') {
-      setCurrentView(keyInfo.keyboardView);
-    }
+    if (view === 'letters') setCurrentView(KeyboardView.Letters);
+    else if (view === 'numbers') setCurrentView(KeyboardView.Numbers);
+    else if (view === 'symbols') setCurrentView(KeyboardView.Symbols);
     
-    // Add to key press history
-    addKeyPress(keyInfo);
+    // Add to key press history - simulate full KeyInfo structure
+    const keyInfo = {
+      key,
+      character: event.character || key,
+      type: event.type || 'letter',
+      keyboardView: view,
+      isCapsLock: event.isCapsLock || false,
+      duration,
+      sequenceIndex: event.sequenceIndex || 0,
+      sequenceLength: event.sequenceLength || 1,
+      timestamp: Date.now()
+    };
+    addKeyPress(keyInfo as any); // Cast to any to avoid strict typing issues
   }, [addKeyPress]);
 
   const {

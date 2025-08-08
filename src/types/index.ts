@@ -21,7 +21,7 @@ export interface HumanLikeConfig {
   correctionPause: number;
   // Keyboard simulation options
   keyboardMode?: 'mobile' | 'desktop';
-  onKey?: (keyInfo: any) => void; // Will be properly typed after re-export
+  onKey?: (keyInfo: any) => void; // KeyInfo imported later
 }
 
 export interface HumanLikeProps {
@@ -82,6 +82,7 @@ export interface HumanLikeHookReturn {
   showCursor: boolean;
   cursorChar: string;
   cursorBlinkSpeed: number;
+  // Stable control methods
   start: () => void;
   stop: () => void;
   pause: () => void;
@@ -89,6 +90,7 @@ export interface HumanLikeHookReturn {
   skip: () => void;
   rewind: () => void;
   reset: () => void;
+  resetKeyboard: () => void;
   setCursorVisible: (visible: boolean) => void;
   setCursorChar: (char: string) => void;
   setCursorBlinkSpeed: (speed: number) => void;
@@ -121,6 +123,66 @@ export interface WordInfo {
   startIndex: number;
   endIndex: number;
 }
+
+// Enums and constants
+export enum ShiftState {
+  Off = 'off',
+  On = 'on',
+  Locked = 'locked'
+}
+
+export enum KeyboardView {
+  Letters = 'letters',
+  Numbers = 'numbers',
+  Symbols = 'symbols'
+}
+
+// New event types
+export interface KeyPressEvent {
+  id: string;
+  key: string;
+  view: KeyboardView;
+  timestamp: number;
+}
+
+export interface StateChangeEvent {
+  previousState: TypingState;
+  currentState: TypingState;
+  timestamp: number;
+}
+
+export interface ViewChangeEvent {
+  previousView: KeyboardView;
+  currentView: KeyboardView;
+  timestamp: number;
+}
+
+export interface ShiftChangeEvent {
+  previousState: ShiftState;
+  currentState: ShiftState;
+  timestamp: number;
+}
+
+export interface ErrorEvent {
+  code: string;
+  message: string;
+  timestamp: number;
+}
+
+// Class override types
+export interface KeyboardClasses {
+  root?: string;
+  row?: string;
+  key?: string;
+  keyActive?: string;
+  keyModifier?: string;
+  title?: string;
+  viewIndicator?: string;
+}
+
+// Label and icon override types
+export type LabelOverrides = Record<string, string>;
+export type IconOverrides = Record<string, React.ReactNode>;
 
 // Re-export keyboard types for convenience
 export type { KeyInfo, KeySequence, KeyboardMode } from '../keyboard/types';
