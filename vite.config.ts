@@ -13,10 +13,13 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        keyboard: resolve(__dirname, 'src/keyboard.ts')
+      },
       name: 'HumanLike',
-      formats: ['es', 'umd'],
-      fileName: (format) => `index.${format}.js`
+      formats: ['es', 'cjs'],
+      fileName: (format, entryName) => `${entryName}.${format === 'cjs' ? 'js' : 'es.js'}`
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime'],

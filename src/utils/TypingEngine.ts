@@ -725,6 +725,16 @@ export class TypingEngine {
       return;
     }
     
+    // Check if there are still pending keyboard timeouts
+    if (this.keyTimeouts.size > 0) {
+      this.debug(`⏳ Waiting for ${this.keyTimeouts.size} pending key timeouts before completion`);
+      // Wait a bit and check again
+      this.timeoutId = window.setTimeout(() => {
+        this.completeTyping();
+      }, 50);
+      return;
+    }
+    
     // Ensure final text matches exactly what was intended
     this.displayText = this.text;
     this.currentIndex = this.text.length;

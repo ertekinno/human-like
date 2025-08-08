@@ -1,12 +1,9 @@
+// Core typewriter functionality
 export { HumanLike } from './components/HumanLike';
 export { useHumanLike } from './hooks/useHumanLike';
 export { TypingEngine } from './utils/TypingEngine';
 
-// Keyboard visualization components
-export { MobileKeyboard } from './components/MobileKeyboard';
-export { DesktopKeyboard } from './components/DesktopKeyboard';
-export { KeyPressIndicator, useKeyPressIndicator } from './components/KeyPressIndicator';
-export { KeyboardSimulationDemo } from './components/KeyboardSimulationDemo';
+// Core types
 export type {
   HumanLikeConfig,
   HumanLikeProps,
@@ -15,41 +12,12 @@ export type {
   HumanLikeHookReturn,
   MistakeType,
   TypingEvent,
-  KeyInfo,
-  KeySequence,
-  KeyboardMode,
-  KeyPressEvent,
   StateChangeEvent,
-  ViewChangeEvent,
-  ShiftChangeEvent,
-  ErrorEvent,
-  KeyboardClasses,
-  LabelOverrides,
-  IconOverrides
+  ErrorEvent
 } from './types';
 
-// Export enums
-export { ShiftState, KeyboardView } from './types';
-
-// Export component interfaces  
-export type { MobileKeyboardProps, MobileKeyboardRef } from './components/MobileKeyboard';
+// Core constants (essential for typing behavior)
 export { 
   TIMING_CONSTANTS, 
-  BEHAVIOR_RATES, 
-  QWERTY_ADJACENT, 
-  DESKTOP_ADJACENT, 
-  MOBILE_ADJACENT, 
-  getAdjacentKeys 
+  BEHAVIOR_RATES
 } from './constants';
-
-// Keyboard simulation exports
-export {
-  KeyboardAnalyzer,
-  MOBILE_LAYOUT,
-  DESKTOP_QWERTY_LAYOUT,
-  MOBILE_TIMING_PROFILES,
-  DESKTOP_TIMING_PROFILES,
-  getDefaultTimingProfile,
-  type TimingProfile,
-  type KeyboardLayoutDefinition
-} from './keyboard';

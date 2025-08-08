@@ -1,92 +1,146 @@
 # 🚀 Human-Like
 
-A sophisticated React typewriter effect library that simulates realistic human typing behavior with interactive mobile/desktop keyboards and comprehensive theming support.
+**Ultra-lightweight typewriter effect with realistic human typing behavior**
 
 [![npm version](https://badge.fury.io/js/@ertekinno%2Fhuman-like.svg)](https://badge.fury.io/js/@ertekinno%2Fhuman-like)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Bundle Size](https://img.shields.io/badge/Bundle%20Size-1.9KB-green.svg)](https://bundlephobia.com/package/@ertekinno/human-like)
 
-*Built with [Claude Code](https://claude.ai/code) - AI-powered development assistant*
+## Introduction
 
-## 🚀 **What Makes This Revolutionary?**
+### Overview
 
-Unlike traditional typewriter libraries that simulate artificial character delays, **Human-Like recreates actual keyboard sequences** that match how people really type on different devices.
+Human-Like is the most sophisticated React typewriter effect library that simulates realistic human typing behavior with actual keyboard sequences instead of artificial delays. With our new **modular architecture**, you get an ultra-lightweight core bundle (1.9KB) with optional keyboard visualization components.
 
-```typescript
-// Traditional libraries: Artificial delays
-'H' → ~~150ms pause~~ → 'e' → ~~80ms pause~~ → 'l' → ...
+#### Key Features
 
-// Human-Like: Real keyboard sequences  
-'H' → [CAPS(120ms) + h(80ms) + CAPS(100ms)] → 'e' → [e(75ms)] → ...
-     → Mobile: View switching for symbols     → Desktop: Modifier keys
-```
+| Feature | Description |
+|---------|-------------|
+| 📦 **Ultra-lightweight** | Core bundle only 1.9KB (97% smaller than v2.0) |
+| 🎯 **Modular Design** | Import keyboard components only when needed |
+| ⌨️ **Real Keyboard Simulation** | Actual key sequences, not fake delays |
+| 🧠 **Human-like Behavior** | Speed variation, realistic mistakes, corrections |
+| 📱💻 **Platform-aware** | Different typing patterns for mobile vs desktop |
+| 🎮 **Complete Control** | Start, pause, resume, reset with full state tracking |
+| 🎨 **Advanced Theming** | Unstyled mode, CSS variables, class overrides |
+| 📊 **100% Test Coverage** | Production-ready with comprehensive test suite |
 
-## ✨ **Core Features**
+#### Bundle Size Comparison
 
-- 📱💻 **Platform-Specific Typing** - Different behaviors for mobile vs desktop keyboards
-- ⌨️ **Real Keyboard Simulation** - Actual key sequences instead of artificial delays  
-- 🎯 **Smart Adjacent Mistakes** - Touch-optimized errors on mobile, QWERTY mistakes on desktop
-- 🔑 **Natural Key Sequences** - CAPS LOCK mode, view switching, modifier keys
-- 🧠 **Intelligent Timing** - Speed multipliers applied to realistic base timing
-- 🎮 **Live Key Visualization** - Real-time keyboard highlighting with interactive keyboards
-- ⚡ **Zero Configuration** - Works perfectly out of the box
-- 📊 **Complete Control** - Fine-tune every aspect of typing behavior
+| Import Strategy | Bundle Size | Use Case |
+|----------------|-------------|----------|
+| **Core Only** | **1.9KB** gzipped | Pure typewriter effects, minimal footprint |
+| **Core + Keyboard** | **54.9KB** gzipped | Interactive demos, tutorials, keyboard visualization |
 
-## 🆕 **New in v2.1.0**
+#### What Makes It Different
 
-- 🎨 **Advanced Theming** - Unstyled mode, CSS variables, class overrides
-- 📱 **Enhanced Mobile Keyboard** - Unified shift/caps behavior, uppercase rendering  
-- 🎛️ **Imperative Controls** - Ref support with resetKeyboard, setView, setShift methods
-- 🔧 **Stable Hook APIs** - useCallback optimization prevents unnecessary re-renders
-- 📋 **Custom Labels & Icons** - labelOverrides and iconOverrides for full customization
-- 🎪 **Structured Events** - Enhanced event system with timestamps and state tracking
-- 📚 **Complete TypeScript** - Exported enums, interfaces, and comprehensive types
-- 🎯 **Separate Styling** - Mobile and desktop keyboards with independent CSS files
+| Traditional Libraries | Human-Like |
+|----------------------|------------|
+| `'H' → (150ms) → 'e' → (80ms) → 'l'` | `'H' → [Shift(80ms) + h(80ms)] → 'e' → [e(75ms)]` |
+| Artificial character delays | Real keyboard sequences |
+| Same behavior on all platforms | Platform-specific mobile/desktop behavior |
+| Generic mistake patterns | Touch-based vs QWERTY-based errors |
 
-## 📦 Installation
+### Installation
 
 ```bash
+# NPM
 npm install @ertekinno/human-like
-# or
+
+# Yarn
 yarn add @ertekinno/human-like
+
+# PNPM
+pnpm add @ertekinno/human-like
 ```
 
-## 🚀 Quick Start
+#### Import Strategies
 
-### Basic Typewriter Effect
+```javascript
+// Core typewriter functionality only (1.9KB)
+import { HumanLike, useHumanLike } from '@ertekinno/human-like'
+
+// Optional keyboard components (+53KB when needed)
+import { 
+  MobileKeyboard, 
+  DesktopKeyboard,
+  KeyPressIndicator,
+  KeyboardSimulationDemo 
+} from '@ertekinno/human-like/keyboard'
+
+// CSS imports (optional)
+import '@ertekinno/human-like/src/styles/MobileKeyboardStyle.css'
+import '@ertekinno/human-like/src/styles/DesktopKeyboardStyle.css'
+```
+
+## Usage
+
+### Getting Started with Human-Like
+
+#### Basic Example (Component)
+
 ```jsx
-import React from 'react';
-import { useHumanLike } from '@ertekinno/human-like';
+import React from 'react'
+import { HumanLike } from '@ertekinno/human-like'
 
 function App() {
-  const { displayText, start } = useHumanLike({
-    text: "Hello, world! This types like a real human...",
-    config: { speed: 80, mistakeFrequency: 0.02 }
-  });
+  return (
+    <div>
+      <HumanLike
+        text="Hello, this types like a real human!"
+        speed={80}
+        mistakeFrequency={0.02}
+        keyboardMode="mobile"
+        onComplete={() => console.log('Typing completed!')}
+      />
+    </div>
+  )
+}
+```
+
+#### Basic Example (Hook)
+
+```jsx
+import React from 'react'
+import { useHumanLike } from '@ertekinno/human-like'
+
+function App() {
+  const { displayText, start, isTyping } = useHumanLike({
+    text: "Hello, this types like a real human!",
+    speed: 80,
+    mistakeFrequency: 0.02,
+    autoStart: false
+  })
 
   return (
     <div>
       <p>{displayText}</p>
-      <button onClick={start}>Start Typing</button>
+      <button onClick={start} disabled={isTyping}>
+        {isTyping ? 'Typing...' : 'Start Typing'}
+      </button>
     </div>
-  );
+  )
 }
 ```
 
-### With Interactive Keyboard (New!)
-```jsx
-import { useHumanLike, MobileKeyboard, KeyboardView, ShiftState } from '@ertekinno/human-like';
-import '@ertekinno/human-like/src/styles/MobileKeyboardStyle.css';
+#### With Keyboard Visualization
 
-function TypewriterWithKeyboard() {
-  const [currentView, setCurrentView] = useState(KeyboardView.Letters);
-  const [shiftState, setShiftState] = useState(ShiftState.Off);
+```jsx
+import React, { useState } from 'react'
+import { useHumanLike } from '@ertekinno/human-like'
+import { MobileKeyboard, KeyboardView, ShiftState } from '@ertekinno/human-like/keyboard'
+import '@ertekinno/human-like/src/styles/MobileKeyboardStyle.css'
+
+function AppWithKeyboard() {
+  const [currentView, setCurrentView] = useState(KeyboardView.Letters)
+  const [shiftState, setShiftState] = useState(ShiftState.Off)
 
   const { displayText, start, isTyping } = useHumanLike({
     text: "Watch the keyboard light up as I type!",
     keyboardMode: 'mobile',
-    onKey: (event) => console.log(`Key: ${event.key}`)
-  });
+    onKey: (keyInfo) => console.log(`Key pressed: ${keyInfo.key}`)
+  })
 
   return (
     <div>
@@ -95,185 +149,110 @@ function TypewriterWithKeyboard() {
       <MobileKeyboard
         currentView={currentView}
         shiftState={shiftState}
-        onViewChange={(event) => setCurrentView(event.currentView)}
-        onShiftStateChange={(event) => setShiftState(event.currentState)}
+        onViewChange={(e) => setCurrentView(e.currentView)}
+        onShiftStateChange={(e) => setShiftState(e.currentState)}
         showTitle={true}
         title="Interactive Demo"
-        labelOverrides={{ return: 'Send' }}
       />
       
       <button onClick={start} disabled={isTyping}>
         {isTyping ? 'Typing...' : 'Start Demo'}
       </button>
     </div>
-  );
+  )
 }
 ```
 
-## 🎹 **Keyboard Simulation System**
+### Component Usage
 
-### **Mobile Keyboard Behavior**
-
-```typescript
-// Typing 'Hello!' on mobile keyboard:
-'H' → [
-  { key: 'CAPS', type: 'modifier', duration: 120ms },
-  { key: 'h', type: 'letter', duration: 80ms },
-  { key: 'CAPS', type: 'modifier', duration: 100ms }
-] // Total: 300ms natural timing
-
-'!' → [
-  { key: '123', type: 'view-switch', duration: 110ms },
-  { key: '#+=', type: 'view-switch', duration: 100ms },
-  { key: '!', type: 'symbol', duration: 90ms },
-  { key: 'ABC', type: 'view-switch', duration: 120ms }
-] // Total: 420ms with view transitions
-```
-
-### **Desktop Keyboard Behavior**
-
-```typescript  
-// Typing 'Hello!' on desktop keyboard:
-'H' → [
-  { key: 'shift', type: 'modifier', duration: 80ms },
-  { key: 'h', type: 'letter', duration: 80ms }
-] // Total: 160ms with modifier
-
-'!' → [
-  { key: 'shift', type: 'modifier', duration: 80ms },
-  { key: '1', type: 'symbol', duration: 90ms }  
-] // Total: 170ms shift+number
-```
-
-## 📱💻 **Platform-Specific Mistakes**
-
-### **Mobile Touch Errors**
-```typescript
-// Fat-finger mistakes common on mobile
-'s' → adjacent: ['a', 'd', 'w', 'e', 'z', 'x'] // Touch-optimized
-' ' → adjacent: ['c', 'v', 'b', 'n', 'm', 'x', 'z'] // Spacebar interference
-```
-
-### **Desktop Physical Errors**  
-```typescript
-// Traditional QWERTY diagonal mistakes
-'s' → adjacent: ['q', 'w', 'e', 'a', 'd', 'z', 'x'] // Physical layout
-' ' → adjacent: ['c', 'v', 'b', 'n', 'm'] // Bottom row only
-```
-
-## 🎮 **Live Keyboard Visualization**
-
-Import the demo components to see real-time key presses:
+The `HumanLike` component provides a declarative way to add typewriter effects:
 
 ```jsx
-import { KeyboardSimulationDemo, MobileKeyboard, DesktopKeyboard } from '@ertekinno/human-like';
-
-function Demo() {
-  return <KeyboardSimulationDemo />;
-  // Includes: Mobile/desktop keyboards + key highlighting + configuration panel
-}
+<HumanLike
+  text="Your text here"
+  speed={80}
+  mistakeFrequency={0.03}
+  keyboardMode="mobile"
+  showCursor={true}
+  cursorChar="|"
+  autoStart={true}
+  className="my-typewriter"
+  onStart={() => console.log('Started')}
+  onComplete={() => console.log('Completed')}
+  onChar={(char, index) => console.log(`Typed: ${char} at ${index}`)}
+/>
 ```
 
-## 📖 **API Reference**
+### Hook Usage
 
-### **All Props**
+The `useHumanLike` hook provides full programmatic control:
+
+```jsx
+const {
+  // State
+  displayText, isTyping, isPaused, isCompleted, progress, currentWPM,
+  
+  // Controls
+  start, stop, pause, resume, reset, skip,
+  
+  // Cursor
+  showCursor, cursorChar, setCursorVisible, setCursorChar
+} = useHumanLike({
+  text: "Your text here",
+  speed: 80,
+  mistakeFrequency: 0.03,
+  config: {
+    // Advanced configuration
+  }
+})
+```
+
+## API Reference
+
+### Component API
+
+Complete `HumanLike` component props reference:
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | **Core Props** |
 | `text` | `string` | **required** | Text to type with keyboard simulation |
-| `speed` | `number` | `80` | Base speed - multiplied across key sequences |
-| `mistakeFrequency` | `number` | `0.03` | Platform-specific mistake probability |
-| **Keyboard Simulation** |
-| `keyboardMode` | `'mobile' \| 'desktop'` | `'mobile'` | Platform for keyboard simulation |
-| `onKey` | `(keyInfo: KeyInfo) => void` | - | Real-time key press events |
+| `speed` | `number` | `80` | Base typing speed in milliseconds (20-500) |
+| `mistakeFrequency` | `number` | `0.03` | Probability of making mistakes (0-0.15) |
+| `keyboardMode` | `'mobile' \| 'desktop'` | `'mobile'` | Platform for keyboard simulation and mistake patterns |
 | **Cursor Control** |
-| `showCursor` | `boolean` | `true` | Show typing cursor |
-| `cursorChar` | `string` | `\|` | Cursor character (can be any string) |
-| `cursorBlinkSpeed` | `number` | `530` | Cursor blink speed in milliseconds |
-| **Lifecycle Controls** |
-| `autoStart` | `boolean` | `true` | Start typing automatically |
-| `onStart` | `(id?: string) => void` | - | Called when typing starts |
-| `onComplete` | `(id?: string) => void` | - | Called when typing completes |
-| `onChar` | `(char: string, index: number, id?: string) => void` | - | Called after each character |
-| `onMistake` | `(mistake: MistakeInfo, id?: string) => void` | - | Called when a mistake occurs |
-| `onBackspace` | `(id?: string) => void` | - | Called when backspacing |
-| `onPause` | `(id?: string) => void` | - | Called when typing is paused |
-| `onResume` | `(id?: string) => void` | - | Called when typing is resumed |
-| **Styling & Advanced** |
-| `className` | `string` | - | CSS class for styling |
-| `style` | `React.CSSProperties` | - | Inline styles |
-| `config` | `Partial<HumanLikeConfig>` | `{}` | Advanced configuration options |
-| `id` | `string` | - | Unique identifier for tracking multiple instances |
+| `showCursor` | `boolean` | `true` | Show blinking cursor during typing |
+| `cursorChar` | `string` | `\|` | Character to use for cursor (can be any string) |
+| `cursorBlinkSpeed` | `number` | `530` | Cursor blink interval in milliseconds |
+| **Lifecycle Control** |
+| `autoStart` | `boolean` | `true` | Start typing automatically when component mounts |
+| `id` | `string` | `undefined` | Unique identifier for tracking multiple instances |
+| **Styling** |
+| `className` | `string` | `undefined` | CSS class for styling the component |
+| `style` | `React.CSSProperties` | `undefined` | Inline styles for the component |
+| **Advanced Configuration** |
+| `config` | `Partial<HumanLikeConfig>` | `{}` | Advanced configuration options (see below) |
+| **Event Callbacks** |
+| `onStart` | `(id?: string) => void` | `undefined` | Called when typing starts |
+| `onComplete` | `(id?: string) => void` | `undefined` | Called when typing completes |
+| `onChar` | `(char: string, index: number, id?: string) => void` | `undefined` | Called after each character is typed |
+| `onMistake` | `(mistake: MistakeInfo, id?: string) => void` | `undefined` | Called when a mistake is made |
+| `onBackspace` | `(id?: string) => void` | `undefined` | Called when backspacing during corrections |
+| `onPause` | `(id?: string) => void` | `undefined` | Called when typing is paused |
+| `onResume` | `(id?: string) => void` | `undefined` | Called when typing is resumed |
+| `onKey` | `(keyInfo: KeyInfo, id?: string) => void` | `undefined` | Called for each key press in the sequence |
 
-### **KeyInfo Interface**
+### Hook API
 
-```typescript
-interface KeyInfo {
-  key: string;              // 'h', 'CAPS', '123', 'shift'
-  character: string;        // Original character: 'H', '@', '4'
-  type: 'letter' | 'number' | 'symbol' | 'modifier' | 'view-switch';
-  keyboardView: 'letters' | 'numbers' | 'symbols';
-  isCapsLock: boolean;      // True for CAPS LOCK sequences
-  duration: number;         // Key press duration (speed-adjusted)
-  sequenceIndex: number;    // Position in key sequence
-  sequenceLength: number;   // Total keys for this character
-}
-```
-
-### **Advanced Configuration**
-
-```typescript
-interface HumanLikeConfig {
-  // Core Settings
-  speed: number;                    // Base timing (20-500ms)  
-  speedVariation: number;           // Random timing variation (±40ms)
-  keyboardMode: 'mobile' | 'desktop';
-  
-  // Mistake System  
-  mistakeFrequency: number;         // Platform-specific error rate (0-0.15)
-  mistakeTypes: {
-    adjacent: boolean;              // Platform-specific adjacent keys
-    random: boolean;                // Random character mistakes
-    doubleChar: boolean;            // Accidental repetition
-    commonTypos: boolean;           // Real-world typo patterns
-  };
-  
-  // Human Behavior
-  fatigueEffect: boolean;           // Gradual slowdown over time
-  concentrationLapses: boolean;     // Random thinking pauses
-  overcorrection: boolean;          // Mistakes while correcting
-  
-  // Advanced Timing Controls
-  sentencePause: number;            // Pause after sentences (400-600ms)
-  wordPause: number;                // Pause between words (120-180ms)
-  thinkingPause: number;            // Pause before complex words (300-500ms)
-  minCharDelay: number;             // Minimum delay between characters
-  backspaceSpeed: number;           // Speed of corrections (40-80ms)
-  realizationDelay: number;         // Time to notice mistake (150-450ms)
-  correctionPause: number;          // Pause before retyping (200-300ms)
-  
-  // Debug Configuration
-  debug: boolean;                   // Enable console logging (default: false)
-  
-  // Callbacks
-  onKey?: (keyInfo: KeyInfo) => void;  // Real-time key events
-}
-```
-
-## 🎮 **useHumanLike Hook**
-
-The `useHumanLike` hook provides complete control over the typing animation with comprehensive state information and control methods.
-
-### **Hook Return Values**
+Complete `useHumanLike` hook return values:
 
 | Property | Type | Description |
 |----------|------|-------------|
 | **State Information** |
 | `displayText` | `string` | Current text being displayed as typing progresses |
-| `isTyping` | `boolean` | Whether the typewriter is currently typing |
+| `isTyping` | `boolean` | Whether the typewriter is currently active |
 | `isPaused` | `boolean` | Whether the typewriter is currently paused |
-| `isCompleted` | `boolean` | Whether typing has completed |
+| `isCompleted` | `boolean` | Whether typing has finished completely |
 | `currentState` | `TypingState` | Current state: `'idle'` \| `'typing'` \| `'paused'` \| `'correcting'` \| `'thinking'` \| `'completed'` |
 | `progress` | `number` | Typing progress as percentage (0-100) |
 | `currentWPM` | `number` | Current words per minute typing speed |
@@ -281,336 +260,388 @@ The `useHumanLike` hook provides complete control over the typing animation with
 | `totalDuration` | `number` | Total duration in milliseconds for the entire typing effect |
 | **Cursor Properties** |
 | `showCursor` | `boolean` | Whether the cursor is currently visible |
-| `cursorChar` | `string` | Current cursor character (e.g., `\|`, `_`, `█`) |
-| `cursorBlinkSpeed` | `number` | Cursor blink speed in milliseconds |
+| `cursorChar` | `string` | Current cursor character |
+| `cursorBlinkSpeed` | `number` | Current cursor blink speed in milliseconds |
 | **Control Methods** |
-| `start()` | `function` | Start typing from current position |
-| `stop()` | `function` | Stop typing and reset to beginning |
-| `pause()` | `function` | Pause typing at current position |
-| `resume()` | `function` | Resume typing from paused position |
-| `skip()` | `function` | Skip to end and show complete text immediately |
-| `rewind()` | `function` | Alias for `reset()` - rewind to beginning |
-| `reset()` | `function` | Reset typing to beginning (same as `rewind()`) |
+| `start()` | `() => void` | Start typing from current position |
+| `stop()` | `() => void` | Stop typing and reset to beginning |
+| `pause()` | `() => void` | Pause typing at current position |
+| `resume()` | `() => void` | Resume typing from paused position |
+| `skip()` | `() => void` | Skip to end and show complete text immediately |
+| `reset()` | `() => void` | Reset typing to beginning |
+| `rewind()` | `() => void` | Alias for `reset()` - rewind to beginning |
 | **Cursor Control Methods** |
-| `setCursorVisible(visible: boolean)` | `function` | Show/hide the cursor |
-| `setCursorChar(char: string)` | `function` | Change cursor character |
-| `setCursorBlinkSpeed(speed: number)` | `function` | Change cursor blink speed in milliseconds |
+| `setCursorVisible(visible: boolean)` | `(boolean) => void` | Show/hide the cursor |
+| `setCursorChar(char: string)` | `(string) => void` | Change cursor character |
+| `setCursorBlinkSpeed(speed: number)` | `(number) => void` | Change cursor blink speed |
 
-Complete control with state management and real-time feedback:
+#### Hook Parameters
 
-```jsx
-import { useHumanLike } from '@ertekinno/human-like';
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `text` | `string` | **required** | Text to type |
+| `speed` | `number` | `80` | Base typing speed |
+| `mistakeFrequency` | `number` | `0.03` | Mistake probability |
+| `keyboardMode` | `'mobile' \| 'desktop'` | `'mobile'` | Platform mode |
+| `autoStart` | `boolean` | `true` | Start automatically |
+| `showCursor` | `boolean` | `true` | Show cursor |
+| `cursorChar` | `string` | `\|` | Cursor character |
+| `cursorBlinkSpeed` | `number` | `530` | Cursor blink speed |
+| `id` | `string` | `undefined` | Instance identifier |
+| `config` | `Partial<HumanLikeConfig>` | `{}` | Advanced config |
+| `onStart` | `(id?: string) => void` | `undefined` | Start callback |
+| `onComplete` | `(id?: string) => void` | `undefined` | Complete callback |
+| `onChar` | `(char: string, index: number, id?: string) => void` | `undefined` | Character callback |
+| `onMistake` | `(mistake: MistakeInfo, id?: string) => void` | `undefined` | Mistake callback |
+| `onBackspace` | `(id?: string) => void` | `undefined` | Backspace callback |
+| `onPause` | `(id?: string) => void` | `undefined` | Pause callback |
+| `onResume` | `(id?: string) => void` | `undefined` | Resume callback |
+| `onKey` | `(keyInfo: KeyInfo, id?: string) => void` | `undefined` | Key press callback |
 
-function AdvancedTyping() {
-  const {
-    // State
-    displayText, isTyping, isPaused, isCompleted, 
-    progress, currentWPM, mistakeCount, totalDuration,
-    
-    // Controls  
-    start, stop, pause, resume, skip, reset,
-    
-    // Cursor
-    showCursor, cursorChar, cursorBlinkSpeed, 
-    setCursorVisible, setCursorChar, setCursorBlinkSpeed
-  } = useHumanLike({
-    text: "Experience real keyboard simulation!",
-    keyboardMode: "mobile",
-    config: {
-      speed: 60,
-      mistakeFrequency: 0.05,
-      onKey: (keyInfo) => {
-        console.log(`Key: ${keyInfo.key} (${keyInfo.type}) - ${keyInfo.duration}ms`);
-      }
-    }
-  });
+### Advanced Configuration
 
-  return (
-    <div>
-      <div className="typing-display">
-        {displayText}
-        {showCursor && <span className="cursor">{cursorChar}</span>}
-      </div>
-      
-      <div className="stats">
-        Progress: {progress}% | WPM: {currentWPM} | Mistakes: {mistakeCount}
-        <br />
-        Total Duration: {totalDuration}ms
-      </div>
-      
-      <div className="controls">
-        <button onClick={start} disabled={isTyping}>Start</button>
-        <button onClick={pause} disabled={!isTyping}>Pause</button>
-        <button onClick={resume} disabled={!isPaused}>Resume</button>
-        <button onClick={reset}>Reset</button>
-        <button onClick={() => setCursorChar(cursorChar === '|' ? '█' : '|')}>
-          Toggle Cursor
-        </button>
-      </div>
-    </div>
-  );
-}
-```
-
-## 🔧 **Speed Range & Categories**
-
-Human-Like supports the full spectrum of typing speeds:
+The `config` object allows fine-tuning of typing behavior:
 
 ```typescript
-// Speed Categories (WPM estimates)
-20-30ms:   Professional (300+ WPM) ⚡
-31-50ms:   Fast (200+ WPM) 🚀  
-51-80ms:   Average (75-120 WPM) ✅
-81-150ms:  Slow (40-75 WPM) 🐌
-151-300ms: Beginner (20-40 WPM) 🔰
-301-500ms: Hunt & Peck (<20 WPM) 🐢
+interface HumanLikeConfig {
+  // Core Timing Settings
+  speed: number                    // Base typing speed (20-500ms)
+  speedVariation: number           // Random timing variation (±ms)
+  keyboardMode: 'mobile' | 'desktop'
+  
+  // Mistake System
+  mistakeFrequency: number         // Overall mistake probability (0-0.15)
+  mistakeTypes: {
+    adjacent: boolean              // Adjacent key mistakes (platform-specific)
+    random: boolean                // Random character mistakes
+    doubleChar: boolean            // Accidental character repetition
+    commonTypos: boolean           // Real-world typo patterns
+  }
+  
+  // Human Behavior Simulation
+  fatigueEffect: boolean           // Gradual slowdown over time
+  concentrationLapses: boolean     // Random thinking pauses
+  overcorrection: boolean          // Mistakes while correcting mistakes
+  
+  // Advanced Timing Controls
+  sentencePause: number            // Pause after sentences (400-600ms)
+  wordPause: number                // Pause between words (120-180ms)
+  thinkingPause: number            // Pause before complex words (300-500ms)
+  minCharDelay: number             // Minimum delay between characters
+  backspaceSpeed: number           // Speed of corrections (40-80ms)
+  realizationDelay: number         // Time to notice mistake (150-450ms)
+  correctionPause: number          // Pause before retyping (200-300ms)
+  
+  // Debug and Development
+  debug: boolean                   // Enable detailed console logging
+  
+  // Callbacks
+  onKey?: (keyInfo: KeyInfo) => void  // Real-time key press events
+}
 ```
 
-## 📱 **Mobile vs Desktop Examples**
+#### Configuration Examples
 
-### **Mobile Typing 'HELLO WORLD!'**
-```
-H → CAPS(120ms) + h(80ms) + CAPS(100ms)     = 300ms
-E → e(75ms)                                 = 75ms  
-L → l(78ms)                                 = 78ms
-L → l(82ms)                                 = 82ms
-O → o(76ms)                                 = 76ms
-  → space(85ms)                             = 85ms
-W → CAPS(115ms) + w(79ms) + CAPS(105ms)     = 299ms
-...
-Total: Natural keyboard sequence timing
+```typescript
+// Professional fast typist
+const professionalConfig = {
+  speed: 30,
+  mistakeFrequency: 0.01,
+  fatigueEffect: false,
+  concentrationLapses: false
+}
+
+// Average casual user
+const casualConfig = {
+  speed: 80,
+  mistakeFrequency: 0.03,
+  fatigueEffect: true,
+  concentrationLapses: true
+}
+
+// Beginner hunt-and-peck
+const beginnerConfig = {
+  speed: 300,
+  mistakeFrequency: 0.08,
+  thinkingPause: 800,
+  realizationDelay: 600
+}
+
+// Mobile-optimized
+const mobileConfig = {
+  keyboardMode: 'mobile',
+  mistakeFrequency: 0.04, // Higher due to touch
+  mistakeTypes: {
+    adjacent: true,       // Fat-finger errors
+    doubleChar: true,     // Touch sensitivity
+    commonTypos: false    // Less relevant for mobile
+  }
+}
 ```
 
-### **Desktop Typing 'HELLO WORLD!'**
-```
-H → shift(80ms) + h(80ms)                   = 160ms
-E → e(75ms)                                 = 75ms
-L → l(78ms)                                 = 78ms
-L → l(82ms)                                 = 82ms
-O → o(76ms)                                 = 76ms
-  → space(85ms)                             = 85ms  
-W → shift(80ms) + w(79ms)                   = 159ms
-...
-Total: Modifier key timing (faster than mobile)
-```
+### Events
 
-## 📋 **Complete Usage Examples**
+Human-Like provides comprehensive event callbacks for tracking typing behavior:
 
-### **All Lifecycle Callbacks**
+#### Event Types
+
+| Event | Parameters | Description |
+|-------|------------|-------------|
+| `onStart` | `(id?: string)` | Typing animation has started |
+| `onComplete` | `(id?: string)` | Typing animation has completed |
+| `onChar` | `(char: string, index: number, id?: string)` | A character has been successfully typed |
+| `onMistake` | `(mistake: MistakeInfo, id?: string)` | A mistake has been made |
+| `onBackspace` | `(id?: string)` | Backspacing during error correction |
+| `onPause` | `(id?: string)` | Typing has been paused |
+| `onResume` | `(id?: string)` | Typing has been resumed |
+| `onKey` | `(keyInfo: KeyInfo, id?: string)` | Individual key press in sequence |
+
+#### Event Examples
+
 ```jsx
 <HumanLike
-  text="Complete example with all callbacks!"
-  speed={80}
-  keyboardMode="mobile" 
-  showCursor={true}
-  cursorChar="█"
-  cursorBlinkSpeed={600}
-  autoStart={false}
-  id="complete-example"
-  className="my-typewriter"
-  style={{ fontFamily: 'monospace' }}
-  
-  // Lifecycle callbacks
+  text="Watch these events!"
   onStart={(id) => console.log('Started typing:', id)}
-  onComplete={(id) => console.log('Completed typing:', id)} 
-  onChar={(char, index, id) => console.log('Typed:', char, 'at', index, 'in', id)}
-  onMistake={(mistake, id) => console.log('Made mistake:', mistake, 'in', id)}
-  onBackspace={(id) => console.log('Backspaced in:', id)}
-  onPause={(id) => console.log('Paused:', id)}
-  onResume={(id) => console.log('Resumed:', id)}
-  
-  config={{
-    speed: 75,
-    speedVariation: 30,
-    mistakeFrequency: 0.04,
-    mistakeTypes: {
-      adjacent: true,
-      random: false, 
-      doubleChar: true,
-      commonTypos: true
-    },
-    fatigueEffect: true,
-    concentrationLapses: true,
-    overcorrection: true,
-    
-    // Advanced timing controls
-    sentencePause: 500,
-    wordPause: 150,
-    thinkingPause: 400,
-    minCharDelay: 30,
-    backspaceSpeed: 60,
-    realizationDelay: 300,
-    correctionPause: 250,
-    
-    debug: true, // Enable console logging
-    
-    // Keyboard simulation callback
-    onKey: (keyInfo) => {
-      console.log(`Key: ${keyInfo.key} (${keyInfo.type}) - ${keyInfo.duration}ms`);
-      if (keyInfo.type === 'view-switch') {
-        console.log('Switching keyboard view!');
-      }
-    }
+  onChar={(char, index, id) => {
+    console.log(`Character "${char}" typed at position ${index}`)
+    // Update progress bar, highlight text, etc.
+  }}
+  onMistake={(mistake, id) => {
+    console.log(`Mistake: typed "${mistake.typed}" instead of "${mistake.intended}"`)
+    // Track error analytics, show corrections, etc.
+  }}
+  onKey={(keyInfo, id) => {
+    console.log(`Key: ${keyInfo.key} (${keyInfo.type}) - ${keyInfo.duration}ms`)
+    // Update keyboard visualization, play sounds, etc.
+  }}
+  onComplete={(id) => {
+    console.log('Typing completed!')
+    // Show next content, trigger animations, etc.
   }}
 />
 ```
 
-### **Multiple Instances with Tracking**
-```jsx
-function MultipleTypewriters() {
-  const handleEvent = (eventType, id, ...args) => {
-    console.log(`${eventType} from typewriter: ${id}`, args);
-  };
+### Types and Interfaces
 
-  return (
-    <div>
-      <HumanLike
-        id="header-typewriter"
-        text="Welcome to our website!"
-        keyboardMode="desktop"
-        onStart={(id) => handleEvent('Start', id)}
-        onComplete={(id) => handleEvent('Complete', id)}
-        onMistake={(mistake, id) => handleEvent('Mistake', id, mistake)}
-      />
-      
-      <HumanLike
-        id="footer-typewriter" 
-        text="Thanks for visiting!"
-        keyboardMode="mobile"
-        onStart={(id) => handleEvent('Start', id)}
-        onComplete={(id) => handleEvent('Complete', id)}
-        onChar={(char, index, id) => handleEvent('Char', id, char, index)}
-      />
-    </div>
-  );
+#### Core Types
+
+```typescript
+// Main hook return type
+interface HumanLikeHookReturn {
+  displayText: string
+  isTyping: boolean
+  isPaused: boolean
+  isCompleted: boolean
+  currentState: TypingState
+  progress: number
+  currentWPM: number
+  mistakeCount: number
+  totalDuration: number
+  showCursor: boolean
+  cursorChar: string
+  cursorBlinkSpeed: number
+  start: () => void
+  stop: () => void
+  pause: () => void
+  resume: () => void
+  skip: () => void
+  reset: () => void
+  rewind: () => void
+  setCursorVisible: (visible: boolean) => void
+  setCursorChar: (char: string) => void
+  setCursorBlinkSpeed: (speed: number) => void
+}
+
+// Component props type
+interface HumanLikeProps {
+  text: string
+  speed?: number
+  mistakeFrequency?: number
+  keyboardMode?: 'mobile' | 'desktop'
+  showCursor?: boolean
+  cursorChar?: string
+  cursorBlinkSpeed?: number
+  autoStart?: boolean
+  id?: string
+  className?: string
+  style?: React.CSSProperties
+  config?: Partial<HumanLikeConfig>
+  onStart?: (id?: string) => void
+  onComplete?: (id?: string) => void
+  onChar?: (char: string, index: number, id?: string) => void
+  onMistake?: (mistake: MistakeInfo, id?: string) => void
+  onBackspace?: (id?: string) => void
+  onPause?: (id?: string) => void
+  onResume?: (id?: string) => void
+  onKey?: (keyInfo: KeyInfo, id?: string) => void
 }
 ```
 
-## 🎯 **Real-World Examples**
+#### State and Event Types
 
-### **Blog Post Introduction**
-```jsx
-<HumanLike
-  text="Welcome to our blog! Today we're exploring the fascinating world of keyboard simulation technology. Did you know that mobile keyboards require 40% more key presses for symbols? Let's dive into the details..."
-  keyboardMode="mobile"
-  config={{
-    speed: 75,
-    mistakeFrequency: 0.02,
-    fatigueEffect: true,
-    onKey: (key) => console.log('Blog typing:', key.key)
-  }}
-/>
-```
+```typescript
+// Typing states
+type TypingState = 'idle' | 'typing' | 'paused' | 'correcting' | 'thinking' | 'completed'
 
-### **Code Demonstration**  
-```jsx
-<HumanLike
-  text="function calculateTiming(speed) {
-  return Math.max(20, speed * 0.8);
-}"
-  keyboardMode="desktop"
-  config={{
-    speed: 60,
-    mistakeFrequency: 0.05, // Higher for complex code
-    mistakeTypes: {
-      adjacent: true,       // Typos in variable names
-      commonTypos: false,   // Disable for code
-      doubleChar: true      // Common in programming
-    }
-  }}
-/>
-```
-
-### **Multi-Language Content**
-```jsx
-<HumanLike
-  text="Hello 世界! Bonjour le monde! ¡Hola mundo! 🌍"
-  keyboardMode="mobile"
-  config={{
-    speed: 90,
-    mistakeFrequency: 0.01, // Lower for careful multi-language typing
-    onKey: (key) => {
-      if (key.type === 'view-switch') {
-        console.log('Switching keyboard views for symbols');
-      }
-    }
-  }}
-/>
-```
-
-## 🎨 **Styling & Customization**
-
-```css
-.human-like-typewriter {
-  font-family: 'Monaco', 'Consolas', monospace;
-  font-size: 18px;
-  line-height: 1.5;
-  color: #333;
+// Mistake information
+interface MistakeInfo {
+  type: MistakeType
+  intended: string
+  typed: string
+  position: number
+  correctionDelay: number
 }
 
-.cursor {
-  animation: blink 1s infinite;
-  color: #007acc;
+type MistakeType = 'adjacent' | 'random' | 'doubleChar' | 'commonTypo'
+
+// Key press information
+interface KeyInfo {
+  key: string              // Physical key: 'h', 'shift', '123', 'CAPS'
+  character: string        // Target character: 'H', '@', '4'
+  type: KeyType           // Key category
+  keyboardView: KeyboardView  // Current keyboard view
+  isCapsLock: boolean     // Whether this uses CAPS LOCK
+  duration: number        // Key press duration (speed-adjusted)
+  sequenceIndex: number   // Position in key sequence (0-based)
+  sequenceLength: number  // Total keys needed for this character
 }
 
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+type KeyType = 'letter' | 'number' | 'symbol' | 'modifier' | 'view-switch'
+type KeyboardView = 'letters' | 'numbers' | 'symbols'
+```
+
+#### Keyboard Component Types (Optional Import)
+
+```typescript
+// Available when importing from '@ertekinno/human-like/keyboard'
+
+// Mobile keyboard props
+interface MobileKeyboardProps {
+  currentView?: KeyboardView
+  shiftState?: ShiftState
+  highlightedKeys?: string[]
+  onViewChange?: (event: ViewChangeEvent) => void
+  onShiftStateChange?: (event: ShiftChangeEvent) => void
+  showTitle?: boolean
+  title?: string
+  unstyled?: boolean
+  keyboardClasses?: KeyboardClasses
+  labelOverrides?: LabelOverrides
+  iconOverrides?: IconOverrides
+}
+
+// Desktop keyboard props  
+interface DesktopKeyboardProps {
+  highlightedKeys?: string[]
+  showTitle?: boolean
+  title?: string
+  theme?: 'light' | 'dark'
+  unstyled?: boolean
+  keyboardClasses?: KeyboardClasses
+}
+
+// Enums
+enum ShiftState {
+  Off = 'off',
+  On = 'on', 
+  Caps = 'caps'
+}
+
+enum KeyboardView {
+  Letters = 'letters',
+  Numbers = 'numbers', 
+  Symbols = 'symbols'
 }
 ```
 
-## 🔧 **Development**
+#### Event Types (Keyboard Components)
+
+```typescript
+interface ViewChangeEvent {
+  previousView: KeyboardView
+  currentView: KeyboardView
+  timestamp: number
+}
+
+interface ShiftChangeEvent {
+  previousState: ShiftState
+  currentState: ShiftState
+  timestamp: number
+}
+
+interface KeyPressEvent {
+  key: string
+  keyType: KeyType
+  timestamp: number
+}
+```
+
+#### Customization Types
+
+```typescript
+// CSS class overrides
+interface KeyboardClasses {
+  keyboard?: string
+  row?: string
+  key?: string
+  keyPressed?: string
+  keyLetter?: string
+  keyNumber?: string
+  keySymbol?: string
+  keyModifier?: string
+  keySpace?: string
+  keyShift?: string
+  keyCaps?: string
+  keyBackspace?: string
+  keyReturn?: string
+  title?: string
+}
+
+// Label customization
+interface LabelOverrides {
+  space?: string
+  return?: string
+  backspace?: string
+  shift?: string
+  caps?: string
+  numbers?: string
+  symbols?: string
+  letters?: string
+}
+
+// Icon customization
+interface IconOverrides {
+  backspace?: React.ReactNode
+  return?: React.ReactNode
+  shift?: React.ReactNode
+  caps?: React.ReactNode
+}
+```
+
+---
+
+## 🚀 Performance
+
+- **Core bundle**: 1.9KB gzipped (essentials only)
+- **Keyboard module**: +53KB gzipped (when needed) 
+- **Runtime**: 60fps with requestAnimationFrame
+- **Memory**: Zero leaks, efficient cleanup
+- **Compatibility**: React 16.8+ (hooks required)
+
+## 🔧 Development
 
 ```bash
 # Clone and setup
 git clone https://github.com/ertekinno/human-like.git
 cd human-like && npm install
 
-# Development with live demo
-npm run dev  # Opens interactive keyboard demo
-
-# Testing
-npm test -- --run  # Full test suite
-npm run test:watch # Watch mode
-
-# Build
-npm run build     # Production build
-npm run typecheck # TypeScript validation
+# Development
+npm run dev        # Live demo with keyboard visualization
+npm run build      # Production build  
+npm test          # Full test suite (190 tests)
+npm run typecheck  # TypeScript validation
 ```
-
-## 📊 **Performance**
-
-- **Bundle Size**: ~24KB gzipped (includes keyboard simulation)
-- **Runtime**: Optimized with requestAnimationFrame for smooth 60fps
-- **Memory**: Efficient cleanup with zero memory leaks  
-- **Compatibility**: React 16.8+ (hooks), React 19 fully supported
-- **Platforms**: Mobile browsers, desktop browsers, React Native compatible
-
-## 🌟 **What's New in v2.1.0**
-
-- ✅ **Advanced Theming System** - Unstyled mode, CSS variables, class overrides  
-- ✅ **Enhanced Mobile Keyboard** - Unified shift/caps with tap/double-tap/hold
-- ✅ **Imperative Controls** - Ref support with resetKeyboard(), setView(), setShift()
-- ✅ **Stable Hook APIs** - useCallback optimization prevents render loops
-- ✅ **Custom Labels & Icons** - labelOverrides and iconOverrides support
-- ✅ **Structured Events** - Enhanced event system with timestamps and state tracking
-- ✅ **Complete TypeScript** - Exported enums, interfaces, comprehensive types  
-- ✅ **Separate CSS Files** - Mobile/desktop keyboards with independent styling
-- ✅ **Zero Breaking Changes** - Fully backward compatible API
-
-## 💡 **Why Choose Human-Like?**
-
-1. **Most Realistic**: Only library with actual keyboard sequence simulation
-2. **Platform Aware**: Different behaviors for mobile vs desktop users  
-3. **Battle Tested**: 100% test coverage, production-ready
-4. **Future Proof**: Built with modern React patterns and TypeScript
-5. **Extensible**: Complete API for custom implementations
-6. **Visual Feedback**: Real-time keyboard visualization components
 
 ## 📄 License
 
 MIT © [ertekinno](https://github.com/ertekinno)
-
----
-
-**Experience the future of typewriter effects.** 🚀
