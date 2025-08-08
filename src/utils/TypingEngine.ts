@@ -210,6 +210,15 @@ export class TypingEngine {
         return;
       }
       
+      // Wait for all key timeouts to complete before finishing
+      if (this.keyTimeouts.size > 0) {
+        this.debug(`⏳ Reached end but waiting for ${this.keyTimeouts.size} key timeouts to complete`);
+        this.timeoutId = window.setTimeout(() => {
+          this.scheduleNextCharacter();
+        }, 50);
+        return;
+      }
+      
       this.completeTyping();
       return;
     }
@@ -280,9 +289,10 @@ export class TypingEngine {
     let cumulativeDelay = 0;
     scaledKeys.forEach((keyInfo) => {
       const keyTimeoutId = window.setTimeout(() => {
+        // Execute onKey callback first
         this.safeCallback(this.onKey, keyInfo);
         this.debug(`🔑 Key press: "${keyInfo.key}" (${keyInfo.type}) - ${keyInfo.duration}ms`);
-        // Remove completed timeout from tracking
+        // Remove completed timeout from tracking AFTER callback execution
         this.keyTimeouts.delete(keyTimeoutId);
       }, cumulativeDelay);
       // Track this timeout so it can be cleared if needed
@@ -725,13 +735,13 @@ export class TypingEngine {
       return;
     }
     
-    // Check if there are still pending keyboard timeouts
+    // Final check - should not reach here with pending timeouts due to scheduleNextCharacter logic
     if (this.keyTimeouts.size > 0) {
-      this.debug(`⏳ Waiting for ${this.keyTimeouts.size} pending key timeouts before completion`);
-      // Wait a bit and check again
+      this.debug(`⚠️ Warning: completeTyping called with ${this.keyTimeouts.size} pending key timeouts`);
+      // This is a fallback - the main logic should prevent this
       this.timeoutId = window.setTimeout(() => {
         this.completeTyping();
-      }, 50);
+      }, 100);
       return;
     }
     

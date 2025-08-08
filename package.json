@@ -1,6 +1,6 @@
 {
   "name": "@ertekinno/human-like",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "type": "module",
   "description": "A sophisticated React typewriter effect library with realistic human typing behavior, mobile/desktop keyboards, and comprehensive theming support",
   "main": "dist/index.js",
