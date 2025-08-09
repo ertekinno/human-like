@@ -87,8 +87,8 @@ describe('Error Handling and Callback Safety', () => {
             completionErrorCount++;
             throw new Error('Completion callback error');
           },
-          onStateChange: (state) => {
-            stateChanges.push(state);
+          onStateChange: (event) => {
+            stateChanges.push(event.currentState);
           }
         });
         
@@ -275,7 +275,7 @@ describe('Error Handling and Callback Safety', () => {
       const allEvents: { id: number, type: string }[] = [];
       let componentId = 0;
       
-      const TestComponent = ({ key }: { key: number }) => {
+      const TestComponent = ({ componentKey }: { componentKey: number }) => {
         const [id] = useState(() => ++componentId);
         
         useHumanLike({
@@ -297,7 +297,7 @@ describe('Error Handling and Callback Safety', () => {
       };
       
       let currentKey = 0;
-      const { rerender } = render(<TestComponent key={currentKey} />);
+      const { rerender } = render(<TestComponent key={currentKey} componentKey={currentKey} />);
       
       // Rapidly recreate components
       for (let i = 0; i < 10; i++) {
@@ -306,7 +306,7 @@ describe('Error Handling and Callback Safety', () => {
         });
         
         currentKey++;
-        rerender(<TestComponent key={currentKey} />);
+        rerender(<TestComponent key={currentKey} componentKey={currentKey} />);
       }
       
       // Final time advance

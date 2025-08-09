@@ -179,11 +179,12 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       onMistake?.(mistake, id);
     });
     
-    // Set up keyboard simulation listener if provided
-    if (onKey) {
+    // Set up keyboard simulation listener if provided (either direct or via config)
+    const keyCallback = onKey || enhancedConfig.onKey;
+    if (keyCallback) {
       typingEngine.onKeyListener((keyInfo) => {
         // Pass the complete KeyInfo object to preserve all information
-        onKey(keyInfo);
+        keyCallback(keyInfo);
       });
     }
 
