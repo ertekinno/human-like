@@ -7,6 +7,7 @@
   --desktop-key-bg-hover: #e6e6e6;
   --desktop-key-bg-hover-dark: #505050;
   --desktop-key-bg-active: #007aff;
+  --desktop-key-bg-active-dark: #007aff;
   --desktop-key-bg-pressed: #d0d0d0;
   --desktop-key-bg-pressed-dark: #606060;
   --desktop-key-text: #000000;
@@ -79,6 +80,11 @@
   color: var(--desktop-key-text-active);
   transform: translateY(1px);
   box-shadow: var(--desktop-key-shadow-pressed);
+}
+
+.human-like-desktop-keyboard[data-theme="dark"] .human-like-desktop-keyboard__key--active {
+  background-color: var(--desktop-key-bg-active-dark);
+  box-shadow: var(--desktop-key-shadow-active-dark);
 }
 
 .human-like-desktop-keyboard__key--pressed {
