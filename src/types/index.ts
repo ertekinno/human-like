@@ -1,3 +1,7 @@
+// Import and re-export keyboard types for use in interfaces
+import type { KeyInfo, KeySequence, KeyboardMode } from '../keyboard/types';
+export type { KeyInfo, KeySequence, KeyboardMode };
+
 export interface HumanLikeConfig {
   speed: number;
   speedVariation: number;
@@ -21,7 +25,7 @@ export interface HumanLikeConfig {
   correctionPause: number;
   // Keyboard simulation options
   keyboardMode?: 'mobile' | 'desktop';
-  onKey?: (keyInfo: any) => void; // KeyInfo imported later
+  onKey?: (keyInfo: KeyInfo) => void;
 }
 
 export interface HumanLikeProps {
@@ -43,7 +47,7 @@ export interface HumanLikeProps {
   onResume?: (id?: string) => void;
   // Keyboard simulation props
   keyboardMode?: 'mobile' | 'desktop';
-  onKey?: (keyInfo: any, id?: string) => void; // Will be properly typed after re-export
+  onKey?: (keyInfo: KeyInfo) => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -74,6 +78,7 @@ export interface HumanLikeHookReturn {
   isTyping: boolean;
   isPaused: boolean;
   isCompleted: boolean;
+  isActive: boolean;
   currentState: TypingState;
   progress: number;
   currentWPM: number;
@@ -182,5 +187,3 @@ export interface KeyboardClasses {
 export type LabelOverrides = Record<string, string>;
 export type IconOverrides = Record<string, React.ReactNode>;
 
-// Re-export keyboard types for convenience
-export type { KeyInfo, KeySequence, KeyboardMode } from '../keyboard/types';

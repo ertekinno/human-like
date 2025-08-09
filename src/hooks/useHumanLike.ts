@@ -5,10 +5,8 @@ import type {
   TypingState, 
   MistakeInfo, 
   KeyInfo,
-  StateChangeEvent,
-  KeyPressEvent
+  StateChangeEvent
 } from '../types';
-import { KeyboardView } from '../types';
 import { TypingEngine } from '../utils/TypingEngine';
 
 interface UseHumanLikeOptions {
@@ -31,7 +29,7 @@ interface UseHumanLikeOptions {
   onKeyboardReset?: () => void;
   // Keyboard simulation options
   keyboardMode?: 'mobile' | 'desktop';
-  onKey?: (event: KeyPressEvent, id?: string) => void;
+  onKey?: (keyInfo: KeyInfo) => void;
 }
 
 export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn {
@@ -109,16 +107,9 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
       ...config,
       ...(keyboardMode && { keyboardMode }),
       ...(onKey && { onKey: (keyInfo: KeyInfo) => {
-        const keyPressEvent: KeyPressEvent = {
-          id: keyInfo.key,
-          key: keyInfo.key,
-          view: (keyInfo.keyboardView === 'letters' ? KeyboardView.Letters :
-                 keyInfo.keyboardView === 'numbers' ? KeyboardView.Numbers :
-                 keyInfo.keyboardView === 'symbols' ? KeyboardView.Symbols :
-                 KeyboardView.Letters), // default fallback
-          timestamp: Date.now()
-        };
-        onKey(keyPressEvent, id);
+        // Pass the complete KeyInfo object to preserve all key information
+        // (type, duration, sequenceIndex, sequenceLength, etc.)
+        onKey(keyInfo);
       }})
     };
     
@@ -191,17 +182,8 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
     // Set up keyboard simulation listener if provided
     if (onKey) {
       typingEngine.onKeyListener((keyInfo) => {
-        // Convert KeyInfo to KeyPressEvent
-        const keyPressEvent: KeyPressEvent = {
-          id: keyInfo.key,
-          key: keyInfo.key,
-          view: (keyInfo.keyboardView === 'letters' ? KeyboardView.Letters :
-                 keyInfo.keyboardView === 'numbers' ? KeyboardView.Numbers :
-                 keyInfo.keyboardView === 'symbols' ? KeyboardView.Symbols :
-                 KeyboardView.Letters), // default fallback
-          timestamp: Date.now()
-        };
-        onKey(keyPressEvent, id);
+        // Pass the complete KeyInfo object to preserve all information
+        onKey(keyInfo);
       });
     }
 
@@ -374,12 +356,14 @@ export function useHumanLike(options: UseHumanLikeOptions): HumanLikeHookReturn 
   const isTyping = currentState === 'typing' || currentState === 'correcting';
   const isPaused = currentState === 'paused';
   const isCompleted = currentState === 'completed';
+  const isActive = currentState !== 'idle' && currentState !== 'completed';
 
   return {
     displayText,
     isTyping,
     isPaused,
     isCompleted,
+    isActive,
     currentState,
     progress,
     currentWPM,

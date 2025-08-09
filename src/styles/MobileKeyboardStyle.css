@@ -1,35 +1,37 @@
-/* Mobile Keyboard Styles - Simplified Desktop-like Approach */
+/* Mobile Keyboard Styles - Desktop-like Styling */
 .human-like-mobile-keyboard {
-  --keyboard-bg: #f2f2f7;
-  --keyboard-bg-dark: #1c1c1e;
-  --key-bg: #ffffff;
-  --key-bg-dark: #2a2a2a;
-  --key-bg-modifier: #d1d1d6;
-  --key-bg-modifier-dark: #4a4a4a;
-  --key-bg-active: #007AFF;
-  --key-bg-active-dark: #0066cc;
-  --key-bg-shift-locked: #ff3b30;
-  --key-bg-shift-locked-dark: #ff6b35;
+  --keyboard-bg: #ffffff;
+  --keyboard-bg-dark: #2c2c2c;
+  --key-bg: #f8f8f8;
+  --key-bg-dark: #404040;
+  --key-bg-modifier: #e6e6e6;
+  --key-bg-modifier-dark: #505050;
+  --key-bg-active: #007aff;
+  --key-bg-active-dark: #007aff;
+  --key-bg-shift-locked: #007aff;
+  --key-bg-shift-locked-dark: #007aff;
   --key-text: #000000;
   --key-text-dark: #ffffff;
   --key-text-active: #ffffff;
-  --key-border: #d1d1d6;
-  --key-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  --key-shadow-dark: 0 1px 3px rgba(0,0,0,0.3);
-  --key-shadow-active: 0 0 10px rgba(0, 122, 255, 0.3);
-  --key-shadow-active-dark: 0 0 10px rgba(0, 102, 204, 0.5);
-  --keyboard-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  --keyboard-shadow-dark: 0 8px 32px rgba(0,0,0,0.6);
-  --keyboard-radius: 12px;
-  --key-radius: 6px;
+  --key-border: #cccccc;
+  --key-border-dark: #555555;
+  --key-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  --key-shadow-dark: 0 2px 4px rgba(0,0,0,0.3);
+  --key-shadow-active: inset 0 2px 4px rgba(0,0,0,0.2);
+  --key-shadow-active-dark: inset 0 2px 4px rgba(0,0,0,0.2);
+  --keyboard-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  --keyboard-shadow-dark: 0 4px 16px rgba(0,0,0,0.4);
+  --keyboard-radius: 8px;
+  --key-radius: 4px;
   
-  padding: 20px;
+  padding: 16px;
   background-color: var(--keyboard-bg);
   border-radius: var(--keyboard-radius);
   box-shadow: var(--keyboard-shadow);
   max-width: 420px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  user-select: none;
 }
 
 .human-like-mobile-keyboard[data-theme="dark"] {
@@ -41,32 +43,42 @@
 .human-like-mobile-keyboard__row {
   display: flex;
   justify-content: center;
-  margin-bottom: 3px;
-  gap: 1px;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .human-like-mobile-keyboard__key {
-  height: 42px;
-  margin: 1px;
+  min-height: 40px;
+  padding: 8px 12px;
   border: 1px solid var(--key-border);
   border-radius: var(--key-radius);
+  background-color: var(--key-bg);
+  color: var(--key-text);
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.1s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--key-bg);
-  color: var(--key-text);
   box-shadow: var(--key-shadow);
-  font-size: 16px;
+  white-space: nowrap;
 }
 
 .human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key {
   background-color: var(--key-bg-dark);
   color: var(--key-text-dark);
+  border-color: var(--key-border-dark);
   box-shadow: var(--key-shadow-dark);
-  border: none;
+}
+
+.human-like-mobile-keyboard__key:hover {
+  background-color: var(--key-bg-modifier);
+  transform: translateY(-1px);
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key:hover {
+  background-color: var(--key-bg-modifier-dark);
 }
 
 .human-like-mobile-keyboard__key--modifier {
@@ -81,8 +93,14 @@
 .human-like-mobile-keyboard__key--active {
   background-color: var(--key-bg-active);
   color: var(--key-text-active);
+  transform: translateY(1px);
   box-shadow: var(--key-shadow-active);
-  transform: scale(0.95);
+}
+
+.human-like-mobile-keyboard__key--active:hover {
+  background-color: var(--key-bg-active);
+  color: var(--key-text-active);
+  transform: translateY(0px);
 }
 
 .human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--active {
@@ -90,22 +108,58 @@
   box-shadow: var(--key-shadow-active-dark);
 }
 
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--active:hover {
+  background-color: var(--key-bg-active-dark);
+  color: var(--key-text-active);
+  transform: translateY(0px);
+}
+
 .human-like-mobile-keyboard__key--shift-on {
   background-color: var(--key-bg-active);
   color: var(--key-text-active);
+  transform: translateY(1px);
+  box-shadow: var(--key-shadow-active);
+}
+
+.human-like-mobile-keyboard__key--shift-on:hover {
+  background-color: var(--key-bg-active);
+  color: var(--key-text-active);
+  transform: translateY(0px);
 }
 
 .human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--shift-on {
   background-color: var(--key-bg-active-dark);
+  box-shadow: var(--key-shadow-active-dark);
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--shift-on:hover {
+  background-color: var(--key-bg-active-dark);
+  color: var(--key-text-active);
+  transform: translateY(0px);
 }
 
 .human-like-mobile-keyboard__key--shift-locked {
   background-color: var(--key-bg-shift-locked);
   color: var(--key-text-active);
+  transform: translateY(1px);
+  box-shadow: var(--key-shadow-active);
+}
+
+.human-like-mobile-keyboard__key--shift-locked:hover {
+  background-color: var(--key-bg-shift-locked);
+  color: var(--key-text-active);
+  transform: translateY(0px);
 }
 
 .human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--shift-locked {
   background-color: var(--key-bg-shift-locked-dark);
+  box-shadow: var(--key-shadow-active-dark);
+}
+
+.human-like-mobile-keyboard[data-theme="dark"] .human-like-mobile-keyboard__key--shift-locked:hover {
+  background-color: var(--key-bg-shift-locked-dark);
+  color: var(--key-text-active);
+  transform: translateY(0px);
 }
 
 /* Key size variations */

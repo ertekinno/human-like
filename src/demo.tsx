@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useHumanLike } from './index';
 import { KeyboardSimulationDemo } from './components/KeyboardSimulationDemo';
+import { MobileKeyboard } from './components/MobileKeyboard';
+import { DesktopKeyboard } from './components/DesktopKeyboard';
 import type { HumanLikeConfig } from './types';
 
 // Import CSS styles for keyboard components
@@ -595,38 +597,148 @@ const DurationDemo: React.FC = () => {
   );
 };
 
-// Initialize demos
+// Simple Mobile Keyboard Demo Component
+const MobileKeyboardDemo: React.FC = () => {
+  const [keyboardMode, setKeyboardMode] = useState<'light' | 'dark'>('light');
+
+  // Listen for theme changes
+  useEffect(() => {
+    const updateTheme = () => {
+      const currentTheme = document.body.getAttribute('data-theme') as 'light' | 'dark';
+      setKeyboardMode(currentTheme || 'light');
+    };
+
+    // Initial theme setup
+    updateTheme();
+
+    // Listen for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <MobileKeyboard
+      keyboardMode={keyboardMode}
+    />
+  );
+};
+
+// Simple Desktop Keyboard Demo Component
+const DesktopKeyboardDemo: React.FC = () => {
+  const [keyboardMode, setKeyboardMode] = useState<'light' | 'dark'>('light');
+
+  // Listen for theme changes
+  useEffect(() => {
+    const updateTheme = () => {
+      const currentTheme = document.body.getAttribute('data-theme') as 'light' | 'dark';
+      setKeyboardMode(currentTheme || 'light');
+    };
+
+    // Initial theme setup
+    updateTheme();
+
+    // Listen for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <DesktopKeyboard
+      keyboardMode={keyboardMode}
+    />
+  );
+};
+
+// KeyboardSimulationDemo Wrapper Component
+const KeyboardSimulationDemoWrapper: React.FC = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // Listen for theme changes
+  useEffect(() => {
+    const updateTheme = () => {
+      const currentTheme = document.body.getAttribute('data-theme') as 'light' | 'dark';
+      setTheme(currentTheme || 'light');
+    };
+
+    // Initial theme setup
+    updateTheme();
+
+    // Listen for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <KeyboardSimulationDemo
+      theme={theme}
+      autoStart={false}
+    />
+  );
+};
+
+// Theme toggle functionality
+function initializeThemeToggle() {
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  const body = document.body;
+  
+  // Check for saved theme or default to light
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  body.setAttribute('data-theme', savedTheme);
+  
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const currentTheme = body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      body.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+  }
+}
+
+// Initialize keyboard component demos
 function initializeDemos() {
   try {
-    // Demo 1 - Configurable
-    const demo1Element = document.getElementById('demo1');
-    if (demo1Element) {
-      const root1 = ReactDOM.createRoot(demo1Element);
-      root1.render(<ConfigurableDemo />);
+    // Initialize theme toggle
+    initializeThemeToggle();
+    
+    // Mobile Keyboard
+    const mobileKeyboardElement = document.getElementById('mobile-keyboard');
+    if (mobileKeyboardElement) {
+      const mobileRoot = ReactDOM.createRoot(mobileKeyboardElement);
+      mobileRoot.render(<MobileKeyboardDemo />);
     }
 
-    // Demo Duration - TotalDuration tracking
-    const demoDurationElement = document.getElementById('demo-duration');
-    if (demoDurationElement) {
-      const rootDuration = ReactDOM.createRoot(demoDurationElement);
-      rootDuration.render(<DurationDemo />);
+    // Desktop Keyboard
+    const desktopKeyboardElement = document.getElementById('desktop-keyboard');
+    if (desktopKeyboardElement) {
+      const desktopRoot = ReactDOM.createRoot(desktopKeyboardElement);
+      desktopRoot.render(<DesktopKeyboardDemo />);
     }
 
-    // Demo 2 - Presets
-    const demo2Element = document.getElementById('demo2');
-    if (demo2Element) {
-      const root2 = ReactDOM.createRoot(demo2Element);
-      root2.render(<PresetDemo />);
-    }
-
-    // NEW: Keyboard Simulation Demo
-    const keyboardDemoElement = document.getElementById('keyboard-demo');
-    if (keyboardDemoElement) {
-      const keyboardRoot = ReactDOM.createRoot(keyboardDemoElement);
-      keyboardRoot.render(<KeyboardSimulationDemo />);
+    // Keyboard Simulation Demo
+    const keyboardSimulationElement = document.getElementById('keyboard-simulation-demo');
+    if (keyboardSimulationElement) {
+      const simulationRoot = ReactDOM.createRoot(keyboardSimulationElement);
+      simulationRoot.render(<KeyboardSimulationDemoWrapper />);
     }
   } catch (error) {
-    console.error('Failed to initialize demos:', error);
+    console.error('Failed to initialize keyboard demos:', error);
   }
 }
 

@@ -1,7 +1,7 @@
 // Keyboard visualization components
 export { MobileKeyboard } from './components/MobileKeyboard';
 export { DesktopKeyboard } from './components/DesktopKeyboard';
-export { KeyPressIndicator, useKeyPressIndicator } from './components/KeyPressIndicator';
+export { useKeyPressIndicator } from './components/KeyPressIndicator';
 export { KeyboardSimulationDemo } from './components/KeyboardSimulationDemo';
 
 // Keyboard-specific types
